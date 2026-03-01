@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RentCar - Iniciar Sesión</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Iconos de Google -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
@@ -17,16 +16,16 @@
                 <p>Tu viaje comienza aquí</p>
             </div>
 
-            <!-- El action="dashboard.html" hace que al presionar el botón entres al menú -->
-            <form action="dashboard.html">
+            <!-- Quitamos el action para manejarlo con JS -->
+            <form id="loginForm">
                 <div class="input-group">
                     <span class="material-symbols-outlined">mail</span>
-                    <input type="email" placeholder="Correo electrónico" required>
+                    <input type="email" id="email" placeholder="Correo electrónico" required>
                 </div>
                 
                 <div class="input-group">
                     <span class="material-symbols-outlined">lock</span>
-                    <input type="password" placeholder="Contraseña" required>
+                    <input type="password" id="password" placeholder="Contraseña" required>
                 </div>
 
                 <div class="options">
@@ -34,15 +33,39 @@
                     <a href="#">¿Olvidaste tu contraseña?</a>
                 </div>
 
-                <!-- Botón de ingreso -->
                 <button type="submit" class="btn-login">Ingresar</button>
             </form>
 
             <div class="footer">
-                <!-- Enlace corregido para ir a la página de registro -->
                 <p>¿No tienes cuenta? <a href="register.html">Regístrate</a></p>
             </div>
         </div>
     </div>
+
+    <!-- SCRIPT DE VALIDACIÓN -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            // 1. Evitamos que la página se recargue automáticamente
+            e.preventDefault();
+
+            // 2. Obtenemos los valores que el usuario escribió
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // 3. DEFINIMOS LAS CREDENCIALES DE PRUEBA
+            const USUARIO_CORRECTO = "admin@rentcar.com";
+            const CLAVE_CORRECTA = "12345";
+
+            // 4. VALIDACIÓN
+            if (email === USUARIO_CORRECTO && password === CLAVE_CORRECTA) {
+                // Si es correcto, mostramos un mensaje y redirigimos
+                alert("¡Acceso concedido! Bienvenido al sistema.");
+                window.location.href = "dashboard.html"; 
+            } else {
+                // Si es incorrecto, mostramos un error
+                alert("Error: Correo o contraseña incorrectos.\n\nPrueba con:\nUsuario: admin@rentcar.com\nClave: 12345");
+            }
+        });
+    </script>
 </body>
 </html>
