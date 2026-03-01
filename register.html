@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentCar - Registro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="brand">
+                <span class="material-symbols-outlined logo-icon">person_add</span>
+                <h1>Crea tu <span>Cuenta</span></h1>
+                <p>Únete a la mejor flota de la ciudad</p>
+            </div>
+
+            <form action="dashboard.html"> <!-- Redirige al dashboard tras "registrarse" -->
+                <div class="input-group">
+                    <span class="material-symbols-outlined">person</span>
+                    <input type="text" placeholder="Nombre completo" required>
+                </div>
+
+                <div class="input-group">
+                    <span class="material-symbols-outlined">mail</span>
+                    <input type="email" placeholder="Correo electrónico" required>
+                </div>
+                
+                <div class="input-group">
+                    <span class="material-symbols-outlined">lock</span>
+                    <input type="password" placeholder="Contraseña" required>
+                </div>
+
+                <div class="input-group">
+                    <span class="material-symbols-outlined">shield</span>
+                    <input type="password" placeholder="Confirmar contraseña" required>
+                </div>
+
+                <button type="submit" class="btn-login">Registrarme</button>
+            </form>
+
+            <div class="footer">
+                <p>¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
