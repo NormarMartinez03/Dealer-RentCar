@@ -307,3 +307,62 @@ body {
     .navbar { flex-direction: column; gap: 15px; }
     .content-header { flex-direction: column; gap: 20px; text-align: center; }
 }
+
+/* Estilos Detalle del Auto */
+.detail-container {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.detail-image img {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.detail-info {
+    flex: 1;
+    text-align: left !important;
+}
+
+.specs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.spec-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* Estilos de Pago */
+.payment-methods {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.method {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.method.active {
+    border-color: #f39c12;
+    background: rgba(243, 156, 18, 0.2);
+}
+
+textarea::placeholder { color: rgba(255,255,255,0.7); }
