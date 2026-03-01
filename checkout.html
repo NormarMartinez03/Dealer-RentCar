@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentCar - Pago Seguro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body class="dashboard-body">
+    <div class="login-container">
+        <div class="login-box" id="payment-box">
+            <div class="brand">
+                <span class="material-symbols-outlined logo-icon">payments</span>
+                <h1>Método de <span>Pago</span></h1>
+                <p>Total a pagar: <strong>$150.00</strong></p>
+            </div>
+
+            <form id="paymentForm">
+                <div class="payment-methods">
+                    <label class="method active"><input type="radio" name="pay" checked> Tarjeta</label>
+                    <label class="method"><input type="radio" name="pay"> PayPal</label>
+                </div>
+
+                <div class="input-group">
+                    <span class="material-symbols-outlined">credit_card</span>
+                    <input type="text" placeholder="Número de Tarjeta" maxlength="16" required>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="input-group">
+                        <input type="text" placeholder="MM/AA" maxlength="5" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" placeholder="CVV" maxlength="3" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">Confirmar Pago</button>
+            </form>
+        </div>
+
+        <!-- Mensaje de éxito -->
+        <div class="login-box" id="success-pay" style="display: none;">
+            <span class="material-symbols-outlined" style="font-size: 60px; color: #2ecc71;">verified</span>
+            <h2>¡Reserva Confirmada!</h2>
+            <p>Tu auto te espera. Hemos enviado el comprobante a tu correo.</p>
+            <br>
+            <a href="dashboard.html" class="btn-login" style="display: block; text-decoration: none;">Volver al Inicio</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('payment-box').style.display = 'none';
+            document.getElementById('success-pay').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
