@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentCar - Catálogo</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body class="dashboard-body">
 
+    <!-- Barra de Navegación -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <span class="material-symbols-outlined">directions_car</span>
+            <h2>Rent<span>Car</span></h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="active">Inicio</a></li>
+            <li><a href="#">Vehículos</a></li>
+            <li><a href="#">Reservas</a></li>
+            <li><a href="#">Perfil</a></li>
+            <li><a href="index.html" class="logout-btn">Salir</a></li>
+        </ul>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <header class="content-header">
+            <h1>Vehículos <span>Disponibles</span></h1>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar por modelo o marca...">
+                <button><span class="material-symbols-outlined">search</span></button>
+            </div>
+        </header>
+
+        <!-- Grilla de Autos -->
+        <div class="car-grid">
+            <!-- Auto 1 -->
+            <div class="car-card">
+                <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=80" alt="Porsche">
+                <div class="car-info">
+                    <h3>Porsche 911 Turbo</h3>
+                    <p class="price">$150<span>/día</span></p>
+                    <div class="specs">
+                        <span><span class="material-symbols-outlined">settings</span> Auto</span>
+                        <span><span class="material-symbols-outlined">person</span> 2</span>
+                    </div>
+                    <button class="btn-rent">Rentar Ahora</button>
+                </div>
+            </div>
+
+            <!-- Auto 2 -->
+            <div class="car-card">
+                <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=400&q=80" alt="BMW">
+                <div class="car-info">
+                    <h3>BMW M4 Competition</h3>
+                    <p class="price">$120<span>/día</span></p>
+                    <div class="specs">
+                        <span><span class="material-symbols-outlined">settings</span> Auto</span>
+                        <span><span class="material-symbols-outlined">person</span> 4</span>
+                    </div>
+                    <button class="btn-rent">Rentar Ahora</button>
+                </div>
+            </div>
+
+            <!-- Auto 3 -->
+            <div class="car-card">
+                <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=400&q=80" alt="SUV">
+                <div class="car-info">
+                    <h3>Jeep Wrangler 4x4</h3>
+                    <p class="price">$95<span>/día</span></p>
+                    <div class="specs">
+                        <span><span class="material-symbols-outlined">settings</span> Manual</span>
+                        <span><span class="material-symbols-outlined">person</span> 5</span>
+                    </div>
+                    <button class="btn-rent">Rentar Ahora</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
