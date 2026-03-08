@@ -2,34 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>RentCar - Panel Administrativo</title>
+    <title>RentCar - Administración</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dashboard-body">
+<body>
     <nav class="navbar">
         <div class="nav-logo"><h2>Rent<span>Car</span></h2></div>
         <ul class="nav-links">
             <li><a href="index.html">Ver Catálogo</a></li>
-            <li><a href="#" class="active">Administrar</a></li>
+            <li><a href="admin.html" class="active">Administrar</a></li>
         </ul>
     </nav>
-
-    <div class="admin-container">
-        <div class="glass-container">
-            <h2 style="margin-bottom: 20px;">Gestión de Inventario</h2>
+    <div style="padding: 40px 8%;">
+        <div class="glass-container" style="max-width: 100%;">
+            <h2>Gestión de Inventario</h2>
             <table class="table-glass">
                 <thead>
-                    <tr>
-                        <th>Imagen</th>
-                        <th>Vehículo</th>
-                        <th>Categoría</th>
-                        <th>Precio/Día</th>
-                        <th>Acciones</th>
-                    </tr>
+                    <tr><th>Imagen</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Acción</th></tr>
                 </thead>
-                <tbody id="adminTableBody">
-                    <!-- JS cargará los datos -->
-                </tbody>
+                <tbody id="adminTableBody"></tbody>
             </table>
         </div>
     </div>

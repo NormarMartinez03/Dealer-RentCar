@@ -4,140 +4,95 @@
     --primary: #f39c12;
     --primary-hover: #e67e22;
     --bg-dark: #0f0f0f;
-    --card-bg: rgba(255, 255, 255, 0.05);
+    --glass: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
-    --text-white: #ffffff;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
 body {
     background: var(--bg-dark);
-    color: var(--text-white);
+    color: white;
     min-height: 100vh;
 }
 
-/* --- NAV BAR INTEGRADA --- */
+/* Fondo con imagen para Login/Register/Checkout/Forgot */
+.login-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80') center/cover;
+}
+
+/* Caja de Cristal */
+.login-box, .glass-container {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+
+/* Navbar */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 8%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
+    padding: 15px 8%;
+    background: rgba(0,0,0,0.9);
     border-bottom: 2px solid var(--primary);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    position: sticky; top: 0; z-index: 1000;
 }
+.nav-logo h2 span { color: var(--primary); }
+.nav-links { display: flex; list-style: none; gap: 20px; align-items: center; }
+.nav-links a { color: white; text-decoration: none; font-size: 0.9rem; }
+.nav-links a:hover { color: var(--primary); }
 
-.nav-logo { display: flex; align-items: center; gap: 10px; color: var(--primary); }
-.nav-logo h2 span { color: white; }
-
-.nav-links { display: flex; list-style: none; gap: 25px; align-items: center; }
-.nav-links a { color: white; text-decoration: none; font-size: 0.95rem; transition: 0.3s; }
-.nav-links a:hover, .nav-links a.active { color: var(--primary); }
-
-.btn-auth {
-    background: var(--primary);
-    color: black !important;
-    padding: 8px 20px;
-    border-radius: 8px;
-    font-weight: 700;
-}
-
-/* --- GLASS CONTAINER (LOGIN/REGISTER/MODALS) --- */
-.glass-container {
-    background: var(--card-bg);
-    backdrop-filter: blur(15px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-}
-
-/* --- CARDS DEL CATÁLOGO --- */
-.car-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    padding: 40px 8%;
-}
-
-.car-card {
-    background: var(--card-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 15px;
-    overflow: hidden;
-    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.car-card:hover {
-    transform: translateY(-10px);
-    border-color: var(--primary);
-    box-shadow: 0 10px 30px rgba(243, 156, 18, 0.2);
-}
-
-.car-card img { width: 100%; height: 200px; object-fit: cover; }
-
-.car-info { padding: 20px; }
-
-.category-badge {
-    background: var(--primary);
-    color: black;
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 4px 12px;
-    border-radius: 5px;
-    text-transform: uppercase;
-}
-
-/* --- TABLAS (ADMIN VIEW) --- */
-.admin-container { padding: 40px 8%; }
-
-.table-glass {
+/* Botones */
+.btn-login, .btn-primary {
     width: 100%;
-    border-collapse: collapse;
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    overflow: hidden;
-    margin-top: 20px;
-}
-
-.table-glass th { background: rgba(243, 156, 18, 0.2); padding: 15px; text-align: left; }
-.table-glass td { padding: 15px; border-bottom: 1px solid var(--glass-border); }
-
-/* --- FILTROS --- */
-.filter-bar {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin: 30px 0;
-}
-
-.filter-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--glass-border);
-    color: white;
-    padding: 10px 25px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.filter-btn.active { background: var(--primary); color: black; border-color: var(--primary); }
-
-/* Botones universales */
-.btn-primary {
+    padding: 12px;
     background: var(--primary);
     border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: 700;
+    border-radius: 10px;
+    color: black;
+    font-weight: bold;
     cursor: pointer;
-    width: 100%;
     transition: 0.3s;
+    text-transform: uppercase;
 }
+.btn-login:hover { background: var(--primary-hover); transform: scale(1.02); }
 
-.btn-primary:hover { background: var(--primary-hover); transform: scale(1.02); }
+.logout-btn { background: var(--primary); color: black !important; padding: 5px 15px; border-radius: 5px; font-weight: bold; }
+
+/* Grilla de Autos */
+.car-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 40px 8%; }
+.car-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 15px; overflow: hidden; }
+.car-card img { width: 100%; height: 180px; object-fit: cover; }
+.car-info { padding: 20px; }
+.category-badge { background: var(--primary); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+.price { color: var(--primary); font-size: 1.4rem; font-weight: bold; margin: 10px 0; }
+
+/* Inputs */
+.input-group { position: relative; margin-bottom: 15px; text-align: left; }
+.input-group input, .input-group textarea {
+    width: 100%; padding: 12px 10px 12px 40px; background: rgba(255,255,255,0.1);
+    border: 1px solid var(--glass-border); border-radius: 8px; color: white; outline: none;
+}
+.input-group span { position: absolute; left: 12px; top: 12px; color: var(--primary); }
+
+/* Tablas */
+.table-glass { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.table-glass th { background: rgba(243, 156, 18, 0.2); padding: 12px; text-align: left; }
+.table-glass td { padding: 12px; border-bottom: 1px solid var(--glass-border); }
+
+/* Filtros */
+.filter-bar { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+.filter-btn { background: #222; color: white; border: 1px solid #444; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+.filter-btn.active { background: var(--primary); color: black; border-color: var(--primary); }

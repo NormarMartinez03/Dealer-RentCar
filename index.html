@@ -2,17 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RentCar Express - Catálogo</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
-<body class="dashboard-body">
+<body>
     <nav class="navbar">
-        <div class="nav-logo">
-            <span class="material-symbols-outlined">directions_car</span>
-            <h2>Rent<span>Car</span></h2>
-        </div>
+        <div class="nav-logo"><h2>Rent<span>Car</span></h2></div>
         <ul class="nav-links">
             <li><a href="index.html" class="active">Vehículos</a></li>
             <li><a href="admin.html">Panel Admin</a></li>
@@ -20,22 +16,17 @@
         </ul>
     </nav>
 
-    <header class="hero-mini">
+    <div style="text-align:center; padding: 40px 0;">
         <h1>Nuestra Flota <span>Premium</span></h1>
-        <p>Selecciona el auto ideal para tu viaje. Inicia sesión para confirmar tu reserva.</p>
-    </header>
-
-    <div class="filter-bar">
-        <button class="filter-btn active" onclick="filterAction('todos', this)">Todos</button>
-        <button class="filter-btn" onclick="filterAction('economico', this)">Económico</button>
-        <button class="filter-btn" onclick="filterAction('suv', this)">SUV</button>
-        <button class="filter-btn" onclick="filterAction('lujo', this)">Lujo</button>
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterAction('todos', this)">Todos</button>
+            <button class="filter-btn" onclick="filterAction('economico', this)">Económico</button>
+            <button class="filter-btn" onclick="filterAction('suv', this)">SUV</button>
+            <button class="filter-btn" onclick="filterAction('lujo', this)">Lujo</button>
+        </div>
     </div>
 
-    <div id="vehicleGrid" class="car-grid">
-        <!-- JS cargará los autos aquí -->
-    </div>
-
+    <div id="vehicleGrid" class="car-grid"></div>
     <script src="app.js"></script>
 </body>
 </html>
