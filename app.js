@@ -40,7 +40,7 @@ const seedData = {
       category: 'suv',
       transmission: 'Automática',
       fuel: 'Gasolina',
-      seats: 5,
+      seats: 2,
       luggage: 4,
       location: 'Santiago',
       pricePerDay: 75,
