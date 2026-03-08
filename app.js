@@ -60,7 +60,7 @@ const seedData = {
       fuel: 'Híbrido',
       seats: 5,
       luggage: 5,
-      location: 'bani',
+      location: 'Bani',
       pricePerDay: 140,
       rating: 4.9,
       image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1200&q=80',
