@@ -17,7 +17,7 @@ const seedData = {
       id: 1,
       name: 'Toyota Corolla',
       brand: 'Toyota',
-      model: 'Corolla',
+      model: 'Corolla LE',
       year: 2023,
       category: 'economico',
       transmission: 'Automática',
@@ -35,7 +35,7 @@ const seedData = {
       id: 2,
       name: 'Hyundai Tucson',
       brand: 'Hyundai',
-      model: 'Tucson',
+      model: 'Tucson Limited',
       year: 2024,
       category: 'suv',
       transmission: 'Automática',
@@ -53,7 +53,7 @@ const seedData = {
       id: 3,
       name: 'BMW X5',
       brand: 'BMW',
-      model: 'X5',
+      model: 'X5 xDrive40i',
       year: 2024,
       category: 'lujo',
       transmission: 'Automática',
@@ -71,7 +71,7 @@ const seedData = {
       id: 4,
       name: 'Kia Rio',
       brand: 'Kia',
-      model: 'Rio',
+      model: 'Rio LX',
       year: 2022,
       category: 'economico',
       transmission: 'Mecánica',
@@ -98,10 +98,25 @@ function normalizeDB(db) {
     'Cali': 'La Romana'
   };
 
-  db.cars = (db.cars || []).map((car) => ({
-    ...car,
-    location: locationMap[car.location] || car.location
-  }));
+  const modelMap = {
+    Corolla: 'Corolla LE',
+    Tucson: 'Tucson Limited',
+    X5: 'X5 xDrive40i',
+    Rio: 'Rio LX'
+  };
+
+  db.cars = (db.cars || []).map((car) => {
+    const fallbackFromName = (car.name || '').trim().split(' ');
+    const fallbackBrand = car.brand || fallbackFromName[0] || '';
+    const fallbackModel = car.model || fallbackFromName.slice(1).join(' ');
+
+    return {
+      ...car,
+      brand: fallbackBrand,
+      model: modelMap[fallbackModel] || fallbackModel,
+      location: locationMap[car.location] || car.location
+    };
+  });
 
   db.users = (db.users || []).map((user) => ({
     ...user,
@@ -155,6 +170,18 @@ function formatCurrency(value) {
     currency: 'DOP',
     minimumFractionDigits: 0
   }).format(value);
+}
+
+
+function getVehicleDisplayName(car) {
+  const brand = (car.brand || '').trim();
+  const model = (car.model || '').trim();
+  const fallbackName = (car.name || 'Vehículo').trim();
+
+  if (brand && model) return `${brand} ${model}`;
+  if (model) return model;
+  if (brand) return brand;
+  return fallbackName;
 }
 
 function updateNavUser() {
@@ -274,13 +301,13 @@ function renderCatalog() {
     .map(
       (car) => `
       <article class="car-card">
-        <img src="${car.image}" alt="${car.name}">
+        <img src="${car.image}" alt="${getVehicleDisplayName(car)}">
         <div class="car-info">
           <div class="car-top-line">
             <span class="badge">${car.category}</span>
             <span>⭐ ${car.rating}</span>
           </div>
-          <h3>${car.name} (${car.year})</h3>
+          <h3>${getVehicleDisplayName(car)} (${car.year})</h3>
           <p class="muted">${car.location} • ${car.transmission} • ${car.seats} pasajeros</p>
           <p class="price">${formatCurrency(car.pricePerDay)}<span>/día</span></p>
           <a class="btn-primary" href="car-details.html?id=${car.id}">Ver detalles</a>
@@ -325,7 +352,7 @@ function renderCarDetails() {
   details.innerHTML = `
     <img src="${car.image}" alt="${car.name}" class="detail-img">
     <div class="detail-text glass-box left">
-      <h1>${car.name} ${car.year}</h1>
+      <h1>${getVehicleDisplayName(car)} ${car.year}</h1>
       <p class="price">${formatCurrency(car.pricePerDay)} / día</p>
       <p class="muted">${car.description}</p>
       <ul class="feature-list">
@@ -354,7 +381,7 @@ function handleCheckout() {
     return;
   }
 
-  document.getElementById('checkoutCar').textContent = `${car.name} ${car.year}`;
+  document.getElementById('checkoutCar').textContent = `${getVehicleDisplayName(car)} ${car.year}`;
   document.getElementById('checkoutPrice').textContent = formatCurrency(car.pricePerDay);
 
   const startDate = document.getElementById('startDate');
