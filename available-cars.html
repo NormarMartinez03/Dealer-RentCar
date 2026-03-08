@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentCar Express | Carros disponibles</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="available-cars">
+  <nav class="navbar">
+    <div class="nav-logo"><h2>RentCar<span>Express</span></h2></div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Catálogo</a></li>
+      <li><a href="available-cars.html" class="active">Disponibles</a></li>
+      <li><a href="contact.html">Contacto</a></li>
+    </ul>
+    <div class="nav-user">
+      <span id="navUserName"></span>
+      <div id="navAuthLinks"></div>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <h1>Carros disponibles para reservar hoy</h1>
+    <p>Aquí solo verás vehículos actualmente disponibles.</p>
+  </header>
+
+  <section class="car-grid" id="availableVehicleGrid"></section>
+
+  <script src="app.js"></script>
+</body>
+</html>

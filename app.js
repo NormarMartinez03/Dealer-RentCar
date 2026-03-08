@@ -27,6 +27,7 @@ const seedData = {
       location: 'Santo Domingo',
       pricePerDay: 45,
       rating: 4.7,
+      available: true,
       image: 'https://media.ed.edmunds-media.com/toyota/corolla/2026/oem/2026_toyota_corolla_sedan_xse_fq_oem_1_600.jpg',
       features: ['Aire acondicionado', 'Bluetooth', 'GPS', 'Seguro básico'],
       description: 'Excelente para ciudad y viajes cortos. Muy cómodo, de bajo consumo y fácil conducción.'
@@ -45,6 +46,7 @@ const seedData = {
       location: 'Santiago',
       pricePerDay: 75,
       rating: 4.8,
+      available: false,
       image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1200&q=80',
       features: ['Cámara de reversa', 'Apple CarPlay', 'Asistente carril', 'Seguro premium'],
       description: 'SUV potente, ideal para familias y viajes en carretera con alto confort.'
@@ -63,6 +65,7 @@ const seedData = {
       location: 'bani',
       pricePerDay: 140,
       rating: 4.9,
+      available: true,
       image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1200&q=80',
       features: ['Asientos en cuero', 'Sunroof', 'Sonido premium', 'Seguro todo riesgo'],
       description: 'Vehículo de lujo para una experiencia premium con máxima seguridad y potencia.'
@@ -81,6 +84,7 @@ const seedData = {
       location: 'Punta Cana',
       pricePerDay: 39,
       rating: 4.5,
+      available: true,
       image: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=1200&q=80',
       features: ['Aire acondicionado', 'USB', 'Seguro básico', 'Frenos ABS'],
       description: 'Compacto y eficiente para moverte por la ciudad con ahorro y comodidad.'
@@ -96,7 +100,20 @@ function getDB() {
     localStorage.setItem(DB_KEY, JSON.stringify(seedData));
     return structuredClone(seedData);
   }
-  return JSON.parse(db);
+
+  const parsedDB = JSON.parse(db);
+  let updated = false;
+
+  parsedDB.cars = parsedDB.cars.map((car) => {
+    if (typeof car.available === 'undefined') {
+      updated = true;
+      return { ...car, available: true };
+    }
+    return car;
+  });
+
+  if (updated) saveDB(parsedDB);
+  return parsedDB;
 }
 
 function saveDB(db) {
@@ -267,6 +284,38 @@ function renderCatalog() {
     .join('');
 }
 
+function renderAvailableCars() {
+  const grid = document.getElementById('availableVehicleGrid');
+  if (!grid) return;
+
+  const db = getDB();
+  const availableCars = db.cars.filter((car) => car.available);
+
+  if (!availableCars.length) {
+    grid.innerHTML = '<p class="empty-state">No hay carros disponibles en este momento.</p>';
+    return;
+  }
+
+  grid.innerHTML = availableCars
+    .map(
+      (car) => `
+      <article class="car-card">
+        <img src="${car.image}" alt="${car.name}">
+        <div class="car-info">
+          <div class="car-top-line">
+            <span class="badge">Disponible</span>
+            <span>⭐ ${car.rating}</span>
+          </div>
+          <h3>${car.name} (${car.year})</h3>
+          <p class="muted">${car.location} • ${car.transmission} • ${car.seats} pasajeros</p>
+          <p class="price">${formatCurrency(car.pricePerDay)}<span>/día</span></p>
+          <a class="btn-primary" href="checkout.html?id=${car.id}">Reservar ahora</a>
+        </div>
+      </article>`
+    )
+    .join('');
+}
+
 function setupFilters() {
   ['filterCategory', 'filterLocation', 'filterPrice'].forEach((id) => {
     const el = document.getElementById(id);
@@ -331,6 +380,11 @@ function handleCheckout() {
     return;
   }
 
+  if (!car.available) {
+    wrap.innerHTML = '<p class="empty-state">Este vehículo ya no está disponible para reservar.</p>';
+    return;
+  }
+
   document.getElementById('checkoutCar').textContent = `${car.name} ${car.year}`;
   document.getElementById('checkoutPrice').textContent = formatCurrency(car.pricePerDay);
 
@@ -376,6 +430,9 @@ function handleCheckout() {
       status: 'confirmada'
     });
 
+    const carIndex = db.cars.findIndex((item) => item.id === car.id);
+    if (carIndex !== -1) db.cars[carIndex].available = false;
+
     saveDB(db);
     document.getElementById('paymentBox').classList.add('hidden');
     document.getElementById('successPaymentBox').classList.remove('hidden');
@@ -414,6 +471,7 @@ function initPage() {
   handleRegister();
   handleForgotPassword();
   renderCatalog();
+  renderAvailableCars();
   setupFilters();
   renderFeaturedStats();
   renderCarDetails();
