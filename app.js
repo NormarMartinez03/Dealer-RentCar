@@ -95,7 +95,11 @@ function normalizeDB(db) {
     'Bogotá': 'Santo Domingo',
     'Medellín': 'Santiago',
     'Cartagena': 'Punta Cana',
-    'Cali': 'La Romana'
+    'Cali': 'La Romana',
+    bogota: 'Santo Domingo',
+    medellin: 'Santiago',
+    cartagena: 'Punta Cana',
+    cali: 'La Romana'
   };
 
   const modelMap = {
@@ -103,6 +107,13 @@ function normalizeDB(db) {
     Tucson: 'Tucson Limited',
     X5: 'X5 xDrive40i',
     Rio: 'Rio LX'
+  };
+
+  const categoryMap = {
+    economico: 'economico',
+    económico: 'economico',
+    suv: 'suv',
+    lujo: 'lujo'
   };
 
   db.cars = (db.cars || []).map((car) => {
@@ -114,7 +125,8 @@ function normalizeDB(db) {
       ...car,
       brand: fallbackBrand,
       model: modelMap[fallbackModel] || fallbackModel,
-      location: locationMap[car.location] || car.location
+      category: categoryMap[(car.category || '').toString().trim().toLowerCase()] || 'economico',
+      location: locationMap[(car.location || '').toString().trim()] || locationMap[(car.location || '').toString().trim().toLowerCase()] || car.location
     };
   });
 
@@ -170,6 +182,15 @@ function formatCurrency(value) {
     currency: 'DOP',
     minimumFractionDigits: 0
   }).format(value);
+}
+
+function normalizeText(value) {
+  return (value || '')
+    .toString()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 
@@ -281,13 +302,13 @@ function renderCatalog() {
   if (!grid) return;
 
   const db = getDB();
-  const category = document.getElementById('filterCategory')?.value || 'todos';
-  const location = document.getElementById('filterLocation')?.value || 'todos';
+  const category = normalizeText(document.getElementById('filterCategory')?.value || 'todos');
+  const location = normalizeText(document.getElementById('filterLocation')?.value || 'todos');
   const maxPrice = Number(document.getElementById('filterPrice')?.value || 9999);
 
   const cars = db.cars.filter((car) => {
-    const byCategory = category === 'todos' || car.category === category;
-    const byLocation = location === 'todos' || car.location === location;
+    const byCategory = category === 'todos' || normalizeText(car.category) === category;
+    const byLocation = location === 'todos' || normalizeText(car.location) === location;
     const byPrice = car.pricePerDay <= maxPrice;
     return byCategory && byLocation && byPrice;
   });
@@ -320,7 +341,9 @@ function renderCatalog() {
 function setupFilters() {
   ['filterCategory', 'filterLocation', 'filterPrice'].forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('change', renderCatalog);
+    if (!el) return;
+    el.addEventListener('change', renderCatalog);
+    el.addEventListener('input', renderCatalog);
   });
 }
 
