@@ -1,34 +1,57 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>RentCar - Catálogo</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentCar | Catálogo</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-logo"><h2>Rent<span>Car</span></h2></div>
-        <ul class="nav-links">
-            <li><a href="dashboard.html" class="active">Vehículos</a></li>
-            <li><a href="contact.html">Contacto</a></li>
-            <li><a href="index.html" class="logout-btn">Salir</a></li>
-        </ul>
-    </nav>
-
-    <h1 style="text-align:center; margin-top:30px;">Nuestra Flota <span>Premium</span></h1>
-
-    <div class="car-grid">
-        <div class="car-card">
-            <img src="https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=400&q=80">
-            <div class="car-info">
-                <h3>Toyota Corolla</h3>
-                <p class="price">$45<span>/día</span></p>
-                <br>
-                <a href="car-details.html" class="btn-primary" style="display:block; text-align:center; text-decoration:none;">Ver Detalles</a>
-            </div>
-        </div>
-        <!-- Repite este bloque para más autos -->
+<body data-page="dashboard">
+  <nav class="navbar">
+    <div class="nav-logo"><h2>Rent<span>Car</span></h2></div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="active">Vehículos</a></li>
+      <li><a href="contact.html">Contacto</a></li>
+    </ul>
+    <div class="nav-user">
+      <span id="navUserName"></span>
+      <div id="navAuthLinks"></div>
     </div>
+  </nav>
+
+  <header class="page-header">
+    <h1>Renta de carros fácil, rápida y segura</h1>
+    <p>Explora nuestro catálogo y reserva en línea.</p>
+  </header>
+
+  <section class="stats-box" id="statsBox"></section>
+
+  <section class="filters">
+    <select id="filterCategory">
+      <option value="todos">Todas las categorías</option>
+      <option value="economico">Económico</option>
+      <option value="suv">SUV</option>
+      <option value="lujo">Lujo</option>
+    </select>
+
+    <select id="filterLocation">
+      <option value="todos">Todas las ciudades</option>
+      <option value="Santo Domingo">Santo Domingo</option>
+      <option value="Santiago">Santiago</option>
+      <option value="Punta Cana">Punta Cana</option>
+      <option value="La Romana">La Romana</option>
+    </select>
+
+    <select id="filterPrice">
+      <option value="9999">Cualquier precio</option>
+      <option value="50">Hasta $50 / día</option>
+      <option value="90">Hasta $90 / día</option>
+      <option value="150">Hasta $150 / día</option>
+    </select>
+  </section>
+
+  <section class="car-grid" id="vehicleGrid"></section>
+
+  <script src="app.js"></script>
 </body>
 </html>
