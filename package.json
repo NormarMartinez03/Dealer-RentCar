@@ -1,1 +1,9 @@
-
+{
+  "name": "dealer-rentcar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicación web de renta de carros",
+  "scripts": {
+    "serve": "python -m http.server 8000"
+  }
+}

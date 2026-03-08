@@ -1,39 +1,45 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>RentCar - Pago</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentCar | Checkout</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
-<body class="auth-page">
-    <div class="glass-box" id="payBox">
-        <h2>Confirmar Pago</h2>
-        <p style="margin-bottom:20px;">Total: $45.00</p>
-        <form id="payForm">
-            <div class="input-group"><span class="material-symbols-outlined">credit_card</span><input type="text" placeholder="Número de tarjeta" required></div>
-            <div style="display:flex; gap:10px;">
-                <div class="input-group"><input type="text" placeholder="MM/AA" required></div>
-                <div class="input-group"><input type="password" placeholder="CVV" required></div>
-            </div>
-            <button type="submit" class="btn-primary">Pagar Ahora</button>
-        </form>
+<body class="auth-page" data-page="checkout">
+  <div id="checkoutWrapper" class="glass-box checkout-box">
+    <div id="paymentBox">
+      <h2>Confirmar reserva</h2>
+      <p class="muted" id="checkoutCar"></p>
+      <p>Tarifa por día: <strong id="checkoutPrice"></strong></p>
+      <form id="checkoutForm" class="stack-md">
+        <label class="input-group no-icon">
+          <input type="date" id="startDate" required>
+        </label>
+        <label class="input-group no-icon">
+          <input type="date" id="endDate" required>
+        </label>
+        <label class="input-group">
+          <span class="material-symbols-outlined">credit_card</span>
+          <input type="text" placeholder="Número de tarjeta" minlength="12" required>
+        </label>
+        <label class="input-group no-icon">
+          <input type="text" placeholder="Nombre en tarjeta" required>
+        </label>
+        <p>Total a pagar: <strong id="totalPrice"></strong></p>
+        <button class="btn-primary" type="submit">Pagar y reservar</button>
+      </form>
     </div>
 
-    <div class="glass-box" id="successBox" style="display:none;">
-        <span class="material-symbols-outlined" style="font-size:60px; color:#2ecc71;">check_circle</span>
-        <h2>¡Pago Exitoso!</h2>
-        <p>Tu reserva ha sido confirmada.</p>
-        <br>
-        <a href="dashboard.html" class="btn-primary" style="display:block; text-decoration:none;">Volver al Inicio</a>
+    <div class="hidden" id="successPaymentBox">
+      <span class="material-symbols-outlined success-icon">check_circle</span>
+      <h2>¡Reserva confirmada!</h2>
+      <p class="muted">Tu pago fue procesado correctamente.</p>
+      <a href="dashboard.html" class="btn-primary">Volver al catálogo</a>
     </div>
+  </div>
 
-    <script>
-        document.getElementById('payForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            document.getElementById('payBox').style.display = 'none';
-            document.getElementById('successBox').style.display = 'block';
-        });
-    </script>
+  <script src="app.js"></script>
 </body>
 </html>

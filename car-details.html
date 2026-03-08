@@ -1,32 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>RentCar - Detalles</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentCar | Detalle vehículo</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-logo"><h2>Rent<span>Car</span></h2></div>
-        <ul class="nav-links">
-            <li><a href="dashboard.html">Volver</a></li>
-        </ul>
-    </nav>
-
-    <div class="detail-container">
-        <img src="https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80" class="detail-img">
-        <div class="detail-text glass-box" style="text-align:left; max-width: 100%;">
-            <h1>Toyota Corolla 2023</h1>
-            <p class="price">$45 / día</p>
-            <p style="margin: 20px 0; color: #ccc;">Excelente confort y bajo consumo de combustible. Ideal para la ciudad y viajes largos.</p>
-            <ul style="list-style:none; margin-bottom:20px;">
-                <li>✅ Aire Acondicionado</li>
-                <li>✅ Transmisión Automática</li>
-                <li>✅ 5 Pasajeros</li>
-            </ul>
-            <a href="checkout.html" class="btn-primary" style="display:block; text-align:center; text-decoration:none;">Proceder al Pago</a>
-        </div>
+<body data-page="details">
+  <nav class="navbar">
+    <div class="nav-logo"><h2>Rent<span>Car</span></h2></div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Volver</a></li>
+    </ul>
+    <div class="nav-user">
+      <span id="navUserName"></span>
+      <div id="navAuthLinks"></div>
     </div>
+  </nav>
+
+  <section class="detail-container" id="carDetailSection"></section>
+
+  <script src="app.js"></script>
 </body>
 </html>
