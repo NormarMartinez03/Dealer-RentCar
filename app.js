@@ -1,88 +1,424 @@
-// 1. Datos iniciales
-const defaultVehicles = [
-    { id: 1, name: 'Toyota Corolla', year: 2023, price: 45, category: 'economico', image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80' },
-    { id: 2, name: 'Hyundai Tucson', year: 2024, price: 70, category: 'suv', image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80' },
-    { id: 3, name: 'BMW X5', year: 2024, price: 135, category: 'lujo', image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80' },
-    { id: 4, name: 'Kia Rio', year: 2022, price: 40, category: 'economico', image: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=800&q=80' }
-];
+const DB_KEY = 'rentcar_db';
+const CURRENT_USER_KEY = 'rentcar_current_user';
 
-// Inicializar base de datos
-let vehicles = JSON.parse(localStorage.getItem('vehicles')) || defaultVehicles;
-if(!localStorage.getItem('vehicles')) localStorage.setItem('vehicles', JSON.stringify(defaultVehicles));
-
-// 2. Renderizar Catálogo (Index)
-function renderCatalog(filter = 'todos') {
-    const grid = document.getElementById('vehicleGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    const filtered = filter === 'todos' ? vehicles : vehicles.filter(v => v.category === filter);
-
-    filtered.forEach(v => {
-        grid.innerHTML += `
-            <div class="car-card">
-                <img src="${v.image}">
-                <div class="car-info">
-                    <span class="category-badge">${v.category}</span>
-                    <h3>${v.name} (${v.year})</h3>
-                    <p class="price">$${v.price}<span>/día</span></p>
-                    <button onclick="checkAuth(${v.id})" class="btn-primary">Reservar Ahora</button>
-                </div>
-            </div>`;
-    });
-}
-
-// 3. Renderizar Tabla (Admin)
-function renderAdmin() {
-    const table = document.getElementById('adminTableBody');
-    if (!table) return;
-    table.innerHTML = '';
-    vehicles.forEach(v => {
-        table.innerHTML += `
-            <tr>
-                <td><img src="${v.image}" width="50"></td>
-                <td>${v.name}</td>
-                <td>${v.category}</td>
-                <td>$${v.price}</td>
-                <td><button onclick="deleteCar(${v.id})" style="color:red; background:none; border:none; cursor:pointer">Eliminar</button></td>
-            </tr>`;
-    });
-}
-
-function deleteCar(id) {
-    vehicles = vehicles.filter(v => v.id !== id);
-    localStorage.setItem('vehicles', JSON.stringify(vehicles));
-    renderAdmin();
-}
-
-// 4. Seguridad y Filtros
-function checkAuth(id) {
-    const user = localStorage.getItem('currentUser');
-    if (!user) {
-        alert("Inicia sesión para reservar");
-        window.location.href = 'login.html';
-    } else {
-        localStorage.setItem('selectedCarId', id);
-        window.location.href = 'checkout.html';
+const seedData = {
+  users: [
+    {
+      id: 1,
+      name: 'Administrador',
+      email: 'admin@rentcar.com',
+      password: 'Admin123*',
+      phone: '3000000000',
+      role: 'admin'
     }
+  ],
+  cars: [
+    {
+      id: 1,
+      name: 'Toyota Corolla',
+      brand: 'Toyota',
+      model: 'Corolla',
+      year: 2023,
+      category: 'economico',
+      transmission: 'Automática',
+      fuel: 'Gasolina',
+      seats: 5,
+      luggage: 2,
+      location: 'Bogotá',
+      pricePerDay: 45,
+      rating: 4.7,
+      image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=1200&q=80',
+      features: ['Aire acondicionado', 'Bluetooth', 'GPS', 'Seguro básico'],
+      description: 'Excelente para ciudad y viajes cortos. Muy cómodo, de bajo consumo y fácil conducción.'
+    },
+    {
+      id: 2,
+      name: 'Hyundai Tucson',
+      brand: 'Hyundai',
+      model: 'Tucson',
+      year: 2024,
+      category: 'suv',
+      transmission: 'Automática',
+      fuel: 'Gasolina',
+      seats: 5,
+      luggage: 4,
+      location: 'Medellín',
+      pricePerDay: 75,
+      rating: 4.8,
+      image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1200&q=80',
+      features: ['Cámara de reversa', 'Apple CarPlay', 'Asistente carril', 'Seguro premium'],
+      description: 'SUV potente, ideal para familias y viajes en carretera con alto confort.'
+    },
+    {
+      id: 3,
+      name: 'BMW X5',
+      brand: 'BMW',
+      model: 'X5',
+      year: 2024,
+      category: 'lujo',
+      transmission: 'Automática',
+      fuel: 'Híbrido',
+      seats: 5,
+      luggage: 5,
+      location: 'Cartagena',
+      pricePerDay: 140,
+      rating: 4.9,
+      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1200&q=80',
+      features: ['Asientos en cuero', 'Sunroof', 'Sonido premium', 'Seguro todo riesgo'],
+      description: 'Vehículo de lujo para una experiencia premium con máxima seguridad y potencia.'
+    },
+    {
+      id: 4,
+      name: 'Kia Rio',
+      brand: 'Kia',
+      model: 'Rio',
+      year: 2022,
+      category: 'economico',
+      transmission: 'Mecánica',
+      fuel: 'Gasolina',
+      seats: 5,
+      luggage: 2,
+      location: 'Cali',
+      pricePerDay: 39,
+      rating: 4.5,
+      image: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=1200&q=80',
+      features: ['Aire acondicionado', 'USB', 'Seguro básico', 'Frenos ABS'],
+      description: 'Compacto y eficiente para moverte por la ciudad con ahorro y comodidad.'
+    }
+  ],
+  bookings: [],
+  inquiries: []
+};
+
+function getDB() {
+  const db = localStorage.getItem(DB_KEY);
+  if (!db) {
+    localStorage.setItem(DB_KEY, JSON.stringify(seedData));
+    return structuredClone(seedData);
+  }
+  return JSON.parse(db);
 }
 
-function filterAction(cat, btn) {
-    renderCatalog(cat);
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+function saveDB(db) {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function getCurrentUser() {
+  const user = localStorage.getItem(CURRENT_USER_KEY);
+  return user ? JSON.parse(user) : null;
+}
+
+function setCurrentUser(user) {
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
-    window.location.href = 'index.html';
+  localStorage.removeItem(CURRENT_USER_KEY);
+  window.location.href = 'index.html';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderCatalog();
-    renderAdmin();
-    const userLink = document.getElementById('user-auth-link');
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user && userLink) {
-        userLink.innerHTML = `<span style="margin-right:10px">Hola, ${user.name}</span> <button onclick="logout()" class="logout-btn">Salir</button>`;
+function requireAuth(redirect = 'index.html') {
+  if (!getCurrentUser()) {
+    alert('Debes iniciar sesión para continuar.');
+    window.location.href = redirect;
+    return false;
+  }
+  return true;
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0
+  }).format(value);
+}
+
+function updateNavUser() {
+  const user = getCurrentUser();
+  const userName = document.getElementById('navUserName');
+  const authLinks = document.getElementById('navAuthLinks');
+
+  if (user && userName) userName.textContent = `Hola, ${user.name}`;
+  if (!authLinks) return;
+
+  if (user) {
+    authLinks.innerHTML = '<button class="btn-ghost" id="logoutBtn">Salir</button>';
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+  } else {
+    authLinks.innerHTML = '<a href="index.html" class="btn-ghost">Ingresar</a>';
+  }
+}
+
+function handleRegister() {
+  const form = document.getElementById('registerForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const db = getDB();
+
+    const name = document.getElementById('registerName').value.trim();
+    const email = document.getElementById('registerEmail').value.trim().toLowerCase();
+    const phone = document.getElementById('registerPhone').value.trim();
+    const password = document.getElementById('registerPassword').value;
+
+    if (db.users.some((u) => u.email === email)) {
+      alert('Este correo ya está registrado.');
+      return;
     }
-});
+
+    const newUser = {
+      id: Date.now(),
+      name,
+      email,
+      phone,
+      password,
+      role: 'customer'
+    };
+
+    db.users.push(newUser);
+    saveDB(db);
+    setCurrentUser({ id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role });
+    window.location.href = 'dashboard.html';
+  });
+}
+
+function handleLogin() {
+  const form = document.getElementById('loginForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const pass = document.getElementById('pass').value;
+
+    const db = getDB();
+    const user = db.users.find((u) => u.email === email && u.password === pass);
+
+    if (!user) {
+      alert('Credenciales inválidas.');
+      return;
+    }
+
+    setCurrentUser({ id: user.id, name: user.name, email: user.email, role: user.role });
+    window.location.href = 'dashboard.html';
+  });
+}
+
+function handleForgotPassword() {
+  const form = document.getElementById('forgotForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
+    const db = getDB();
+
+    if (!db.users.some((u) => u.email === email)) {
+      alert('No encontramos una cuenta con este correo.');
+      return;
+    }
+
+    document.getElementById('recoveryBox').classList.add('hidden');
+    document.getElementById('successBox').classList.remove('hidden');
+  });
+}
+
+function renderCatalog() {
+  const grid = document.getElementById('vehicleGrid');
+  if (!grid) return;
+
+  const db = getDB();
+  const category = document.getElementById('filterCategory')?.value || 'todos';
+  const location = document.getElementById('filterLocation')?.value || 'todos';
+  const maxPrice = Number(document.getElementById('filterPrice')?.value || 9999);
+
+  const cars = db.cars.filter((car) => {
+    const byCategory = category === 'todos' || car.category === category;
+    const byLocation = location === 'todos' || car.location === location;
+    const byPrice = car.pricePerDay <= maxPrice;
+    return byCategory && byLocation && byPrice;
+  });
+
+  if (!cars.length) {
+    grid.innerHTML = '<p class="empty-state">No hay vehículos con esos filtros.</p>';
+    return;
+  }
+
+  grid.innerHTML = cars
+    .map(
+      (car) => `
+      <article class="car-card">
+        <img src="${car.image}" alt="${car.name}">
+        <div class="car-info">
+          <div class="car-top-line">
+            <span class="badge">${car.category}</span>
+            <span>⭐ ${car.rating}</span>
+          </div>
+          <h3>${car.name} (${car.year})</h3>
+          <p class="muted">${car.location} • ${car.transmission} • ${car.seats} pasajeros</p>
+          <p class="price">${formatCurrency(car.pricePerDay)}<span>/día</span></p>
+          <a class="btn-primary" href="car-details.html?id=${car.id}">Ver detalles</a>
+        </div>
+      </article>`
+    )
+    .join('');
+}
+
+function setupFilters() {
+  ['filterCategory', 'filterLocation', 'filterPrice'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderCatalog);
+  });
+}
+
+function renderFeaturedStats() {
+  const stats = document.getElementById('statsBox');
+  if (!stats) return;
+
+  const db = getDB();
+  stats.innerHTML = `
+    <div><strong>${db.cars.length}</strong><span>Vehículos</span></div>
+    <div><strong>${db.bookings.length}</strong><span>Reservas</span></div>
+    <div><strong>${db.users.length}</strong><span>Usuarios</span></div>
+  `;
+}
+
+function renderCarDetails() {
+  const details = document.getElementById('carDetailSection');
+  if (!details) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get('id'));
+  const car = getDB().cars.find((item) => item.id === id);
+
+  if (!car) {
+    details.innerHTML = '<p class="empty-state">Vehículo no encontrado.</p>';
+    return;
+  }
+
+  details.innerHTML = `
+    <img src="${car.image}" alt="${car.name}" class="detail-img">
+    <div class="detail-text glass-box left">
+      <h1>${car.name} ${car.year}</h1>
+      <p class="price">${formatCurrency(car.pricePerDay)} / día</p>
+      <p class="muted">${car.description}</p>
+      <ul class="feature-list">
+        ${car.features.map((feature) => `<li>✅ ${feature}</li>`).join('')}
+        <li>✅ ${car.fuel}</li>
+        <li>✅ ${car.seats} pasajeros / ${car.luggage} maletas</li>
+      </ul>
+      <a href="checkout.html?id=${car.id}" class="btn-primary">Reservar este vehículo</a>
+    </div>
+  `;
+}
+
+function handleCheckout() {
+  const wrap = document.getElementById('checkoutWrapper');
+  const form = document.getElementById('checkoutForm');
+  if (!wrap || !form) return;
+
+  if (!requireAuth()) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get('id'));
+  const car = getDB().cars.find((item) => item.id === id);
+
+  if (!car) {
+    wrap.innerHTML = '<p class="empty-state">Vehículo no encontrado para reservar.</p>';
+    return;
+  }
+
+  document.getElementById('checkoutCar').textContent = `${car.name} ${car.year}`;
+  document.getElementById('checkoutPrice').textContent = formatCurrency(car.pricePerDay);
+
+  const startDate = document.getElementById('startDate');
+  const endDate = document.getElementById('endDate');
+  const totalText = document.getElementById('totalPrice');
+
+  const calcTotal = () => {
+    if (!startDate.value || !endDate.value) return car.pricePerDay;
+    const start = new Date(startDate.value);
+    const end = new Date(endDate.value);
+    const diffDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+    return diffDays * car.pricePerDay;
+  };
+
+  const updateTotal = () => {
+    totalText.textContent = formatCurrency(calcTotal());
+  };
+
+  startDate.addEventListener('change', updateTotal);
+  endDate.addEventListener('change', updateTotal);
+  updateTotal();
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    if (!startDate.value || !endDate.value) {
+      alert('Selecciona fechas válidas.');
+      return;
+    }
+
+    const user = getCurrentUser();
+    const db = getDB();
+    const total = calcTotal();
+
+    db.bookings.push({
+      id: Date.now(),
+      userId: user.id,
+      carId: car.id,
+      startDate: startDate.value,
+      endDate: endDate.value,
+      total,
+      status: 'confirmada'
+    });
+
+    saveDB(db);
+    document.getElementById('paymentBox').classList.add('hidden');
+    document.getElementById('successPaymentBox').classList.remove('hidden');
+  });
+}
+
+function handleContact() {
+  const form = document.getElementById('contactForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const db = getDB();
+    db.inquiries.push({
+      id: Date.now(),
+      name: document.getElementById('contactName').value.trim(),
+      email: document.getElementById('contactEmail').value.trim(),
+      message: document.getElementById('contactMessage').value.trim(),
+      createdAt: new Date().toISOString()
+    });
+    saveDB(db);
+    form.reset();
+    document.getElementById('contactSuccess').classList.remove('hidden');
+  });
+}
+
+function initPage() {
+  getDB();
+  const page = document.body.dataset.page;
+  updateNavUser();
+
+  if (page === 'login' && getCurrentUser()) window.location.href = 'dashboard.html';
+  if (page === 'dashboard') requireAuth();
+
+  handleLogin();
+  handleRegister();
+  handleForgotPassword();
+  renderCatalog();
+  setupFilters();
+  renderFeaturedStats();
+  renderCarDetails();
+  handleCheckout();
+  handleContact();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
