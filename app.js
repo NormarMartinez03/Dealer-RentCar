@@ -1,5 +1,6 @@
 const DB_KEY = 'rentcar_db';
 const CURRENT_USER_KEY = 'rentcar_current_user';
+const DB_VERSION = 2;
 
 const seedData = {
   users: [
@@ -90,6 +91,26 @@ const seedData = {
   inquiries: []
 };
 
+
+function syncCarsWithSeed(db) {
+  const byId = new Map((db.cars || []).map((car) => [car.id, car]));
+
+  db.cars = seedData.cars.map((seedCar) => {
+    const current = byId.get(seedCar.id) || {};
+    return {
+      ...current,
+      ...seedCar,
+      // Permite que cambios de enlaces de imagen y nombres en el código se reflejen
+      image: seedCar.image,
+      name: seedCar.name,
+      brand: seedCar.brand,
+      model: seedCar.model
+    };
+  });
+
+  return db;
+}
+
 function normalizeDB(db) {
   const locationMap = {
     'Bogotá': 'Santo Domingo',
@@ -141,10 +162,18 @@ function normalizeDB(db) {
 function getDB() {
   const db = localStorage.getItem(DB_KEY);
   if (!db) {
-    localStorage.setItem(DB_KEY, JSON.stringify(seedData));
-    return structuredClone(seedData);
+    const fresh = { ...structuredClone(seedData), version: DB_VERSION };
+    localStorage.setItem(DB_KEY, JSON.stringify(fresh));
+    return fresh;
   }
-  const normalized = normalizeDB(JSON.parse(db));
+
+  const parsed = JSON.parse(db);
+  if (!parsed.version || parsed.version < DB_VERSION) {
+    parsed.version = DB_VERSION;
+    syncCarsWithSeed(parsed);
+  }
+
+  const normalized = normalizeDB(parsed);
   localStorage.setItem(DB_KEY, JSON.stringify(normalized));
   return normalized;
 }
