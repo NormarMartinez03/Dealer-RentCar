@@ -18,7 +18,7 @@ const seedData = {
       name: 'Toyota Corolla',
       brand: 'Toyota',
       model: 'Corolla',
-      year: 2023,
+      year: 2026,
       category: 'economico',
       transmission: 'Automática',
       fuel: 'Gasolina',
@@ -27,7 +27,7 @@ const seedData = {
       location: 'Santo Domingo',
       pricePerDay: 45,
       rating: 4.7,
-      image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=1200&q=80',
+      image: 'https://media.ed.edmunds-media.com/toyota/corolla/2026/oem/2026_toyota_corolla_sedan_xse_fq_oem_1_600.jpg',
       features: ['Aire acondicionado', 'Bluetooth', 'GPS', 'Seguro básico'],
       description: 'Excelente para ciudad y viajes cortos. Muy cómodo, de bajo consumo y fácil conducción.'
     },
