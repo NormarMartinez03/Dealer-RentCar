@@ -3,44 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RentCar Express - Inicio</title>
+    <title>RentCar Express - Catálogo</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body class="dashboard-body">
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-logo">
             <span class="material-symbols-outlined">directions_car</span>
             <h2>Rent<span>Car</span></h2>
         </div>
         <ul class="nav-links">
-            <li><a href="#" class="active">Vehículos</a></li>
-            <li><a href="contact.html">Contacto</a></li>
-            <li id="auth-link"><a href="login.html" class="logout-btn">Iniciar Sesión</a></li>
+            <li><a href="index.html" class="active">Vehículos</a></li>
+            <li><a href="admin.html">Panel Admin</a></li>
+            <li id="user-auth-link"><a href="login.html" class="logout-btn">Iniciar Sesión</a></li>
         </ul>
     </nav>
 
-    <!-- Hero Section adaptada del proyecto viejo -->
-    <header class="main-content">
-        <div class="hero-mini">
-            <h1>Renta el Vehículo Perfecto para tu <span>Aventura</span></h1>
-            <p>Explora nuestra flota exclusiva y reserva en segundos.</p>
-        </div>
-
-        <!-- Filtros del proyecto viejo -->
-        <div class="filter-container">
-            <button class="filter-btn active" onclick="filterCars('todos')">Todos</button>
-            <button class="filter-btn" onclick="filterCars('economico')">Económico</button>
-            <button class="filter-btn" onclick="filterCars('suv')">SUV</button>
-            <button class="filter-btn" onclick="filterCars('lujo')">Lujo</button>
-        </div>
-
-        <!-- Grilla de Autos Dinámica -->
-        <div id="vehicleGrid" class="car-grid">
-            <!-- Se carga mediante JS -->
-        </div>
+    <header class="hero-mini">
+        <h1>Nuestra Flota <span>Premium</span></h1>
+        <p>Selecciona el auto ideal para tu viaje. Inicia sesión para confirmar tu reserva.</p>
     </header>
+
+    <div class="filter-container">
+        <button class="filter-btn active" onclick="filterCars('todos', this)">Todos</button>
+        <button class="filter-btn" onclick="filterCars('economico', this)">Económico</button>
+        <button class="filter-btn" onclick="filterCars('suv', this)">SUV</button>
+        <button class="filter-btn" onclick="filterCars('lujo', this)">Lujo</button>
+    </div>
+
+    <div id="vehicleGrid" class="car-grid">
+        <!-- JS cargará los autos aquí -->
+    </div>
 
     <script src="app.js"></script>
 </body>
