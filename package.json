@@ -4,7 +4,9 @@
   "private": true,
   "description": "Aplicación web de renta de carros (localStorage + roles)",
   "scripts": {
+    "start": "npm run serve",
     "serve": "python -m http.server 8000",
-    "check": "node --check app.js"
+    "check": "node --check app.js",
+    "validate": "npm run check"
   }
 }

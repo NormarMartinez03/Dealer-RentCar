@@ -4,6 +4,8 @@ Proyecto Final de ING SOFTWARE 2.
 
 ## Ejecución rápida
 ```bash
+npm start
+# o
 npm run serve
 ```
 Abrir: `http://localhost:8000/index.html`
