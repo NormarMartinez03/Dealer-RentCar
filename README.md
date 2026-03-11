@@ -23,5 +23,10 @@ Credenciales demo admin:
 ## Alternativa recomendada de base de datos
 Si quieres migrar desde `localStorage`, recomiendo **Supabase (PostgreSQL + Auth + API)** por equilibrio entre facilidad y escalabilidad.
 
+
+## Nota de merge
+Esta rama utiliza **solo frontend con localStorage**.
+No requiere backend Node/SQL para ejecutar.
+
 ## Documentación
 - Estado actual del sistema: `docs/ESTADO_ACTUAL_SISTEMA.md`
