@@ -4,6 +4,7 @@
   "private": true,
   "description": "Aplicación web de renta de carros",
   "scripts": {
-    "serve": "python -m http.server 8000"
+    "serve": "python -m http.server 8000",
+    "check": "node --check app.js"
   }
 }

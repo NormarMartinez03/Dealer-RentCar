@@ -37,17 +37,17 @@ const seedData = {
       brand: 'Ferrari',
       model: 'La Ferrari',
       year: 2024,
-      category: 'Deportivo',
+      category: 'deportivo',
       transmission: 'Automática',
       fuel: 'Gasolina',
       seats: 2,
-      luggage: 4,
+      luggage: 1,
       location: 'Santiago',
-      pricePerDay: 75,
-      rating: 4.8,
+      pricePerDay: 250,
+      rating: 4.9,
       image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1200&q=80',
       features: ['Cámara de reversa', 'Apple CarPlay', 'Asistente carril', 'Seguro premium'],
-      description: 'SUV potente, ideal para familias y viajes en carretera con alto confort.'
+      description: 'Superdeportivo de lujo para una experiencia única.'
     },
     {
       id: 3,
@@ -65,44 +65,8 @@ const seedData = {
       rating: 4.9,
       image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1200&q=80',
       features: ['Asientos en cuero', 'Sunroof', 'Sonido premium', 'Seguro todo riesgo'],
-      description: 'Vehículo de lujo para una experiencia premium con máxima seguridad y potencia.'
-    },
-    {
-      id: 4,
-      name: 'Mercedes-Benz C-Class',
-      brand: 'Mercedes-Benz',
-      model: 'C-Class',
-      year: 2022,
-      category: 'economico',
-      transmission: 'Automática',
-      fuel: 'Gasolina',
-      seats: 5,
-      luggage: 2,
-      location: 'Punta Cana',
-      pricePerDay: 39,
-      rating: 4.5,
-      image: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=1200&q=80',
-      features: ['Aire acondicionado', 'USB', 'Seguro básico', 'Frenos ABS'],
-      description: 'Compacto y eficiente para moverte por la ciudad con ahorro y comodidad.'
-    },
-    {
-      id: 5,
-      name: 'Jeep Wrangler',
-      brand: 'Jeep',
-      model: 'Wrangler',
-      year: 2023,
-      category: 'SUV',
-      transmission: 'Manual',
-      fuel: 'Gasolina',
-      seats: 4,
-      luggage: 3,
-      location: 'Santo Domingo',
-      pricePerDay: 60,
-      rating: 4.6,
-      image: 'https://www.jeep.com/content/dam/cross-regional/global/jeep/2023/wrangler/exterior/desktop/MY23-Wrangler-Exterior-Slider-Rubicon-Desktop.jpg',
-      features: ['Tracción 4x4', 'Bluetooth', 'GPS', 'Seguro básico'],
-      description: 'Ideal para aventuras off-road y escapadas de fin de semana con estilo robusto.'
-    },
+      description: 'Vehículo premium para familias y viajes largos.'
+    }
   ],
   bookings: [],
   inquiries: []
@@ -135,20 +99,34 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-function requireAuth(redirect = 'index.html') {
-  if (!getCurrentUser()) {
+function resolveRoleHome(role) {
+  if (role === 'admin') return 'admin.html';
+  if (role === 'agent') return 'agent.html';
+  return 'customer.html';
+}
+
+function requireAuth(role) {
+  const user = getCurrentUser();
+  if (!user) {
     alert('Debes iniciar sesión para continuar.');
-    window.location.href = redirect;
+    window.location.href = 'index.html';
     return false;
   }
+
+  if (role && user.role !== role) {
+    alert('No tienes permisos para esta vista.');
+    window.location.href = resolveRoleHome(user.role);
+    return false;
+  }
+
   return true;
 }
 
 function formatCurrency(value) {
-  return new Intl.NumberFormat('es-CO', {
+  return new Intl.NumberFormat('es-DO', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 0
+    minimumFractionDigits: 2
   }).format(value);
 }
 
@@ -157,13 +135,12 @@ function updateNavUser() {
   const userName = document.getElementById('navUserName');
   const authLinks = document.getElementById('navAuthLinks');
 
-  if (user && userName) userName.textContent = `Hola, ${user.name}`;
+  if (userName && user) userName.textContent = `Hola, ${user.name} (${user.role})`;
   if (!authLinks) return;
 
   if (user) {
     authLinks.innerHTML = '<button class="btn-ghost" id="logoutBtn">Salir</button>';
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
   } else {
     authLinks.innerHTML = '<a href="index.html" class="btn-ghost">Ingresar</a>';
   }
@@ -181,11 +158,19 @@ function handleRegister() {
     const email = document.getElementById('registerEmail').value.trim().toLowerCase();
     const phone = document.getElementById('registerPhone').value.trim();
     const password = document.getElementById('registerPassword').value;
+    const role = document.getElementById('registerRole')?.value || 'customer';
+
+    if (password.length < 8) {
+      alert('La contraseña debe tener mínimo 8 caracteres.');
+      return;
+    }
 
     if (db.users.some((u) => u.email === email)) {
       alert('Este correo ya está registrado.');
       return;
     }
+
+    const allowedRole = ['customer', 'agent'].includes(role) ? role : 'customer';
 
     const newUser = {
       id: Date.now(),
@@ -193,13 +178,14 @@ function handleRegister() {
       email,
       phone,
       password,
-      role: 'customer'
+      role: allowedRole
     };
 
     db.users.push(newUser);
     saveDB(db);
+
     setCurrentUser({ id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role });
-    window.location.href = 'dashboard.html';
+    window.location.href = resolveRoleHome(newUser.role);
   });
 }
 
@@ -221,26 +207,7 @@ function handleLogin() {
     }
 
     setCurrentUser({ id: user.id, name: user.name, email: user.email, role: user.role });
-    window.location.href = 'dashboard.html';
-  });
-}
-
-function handleForgotPassword() {
-  const form = document.getElementById('forgotForm');
-  if (!form) return;
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
-    const db = getDB();
-
-    if (!db.users.some((u) => u.email === email)) {
-      alert('No encontramos una cuenta con este correo.');
-      return;
-    }
-
-    document.getElementById('recoveryBox').classList.add('hidden');
-    document.getElementById('successBox').classList.remove('hidden');
+    window.location.href = resolveRoleHome(user.role);
   });
 }
 
@@ -267,14 +234,10 @@ function renderCatalog() {
 
   grid.innerHTML = cars
     .map(
-      (car) => `
-      <article class="car-card">
+      (car) => `<article class="car-card">
         <img src="${car.image}" alt="${car.name}">
         <div class="car-info">
-          <div class="car-top-line">
-            <span class="badge">${car.category}</span>
-            <span>⭐ ${car.rating}</span>
-          </div>
+          <div class="car-top-line"><span class="badge">${car.category}</span><span>⭐ ${car.rating}</span></div>
           <h3>${car.name} (${car.year})</h3>
           <p class="muted">${car.location} • ${car.transmission} • ${car.seats} pasajeros</p>
           <p class="price">${formatCurrency(car.pricePerDay)}<span>/día</span></p>
@@ -287,29 +250,15 @@ function renderCatalog() {
 
 function setupFilters() {
   ['filterCategory', 'filterLocation', 'filterPrice'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', renderCatalog);
+    document.getElementById(id)?.addEventListener('change', renderCatalog);
   });
-}
-
-function renderFeaturedStats() {
-  const stats = document.getElementById('statsBox');
-  if (!stats) return;
-
-  const db = getDB();
-  stats.innerHTML = `
-    <div><strong>${db.cars.length}</strong><span>Vehículos</span></div>
-    <div><strong>${db.bookings.length}</strong><span>Reservas</span></div>
-    <div><strong>${db.users.length}</strong><span>Usuarios</span></div>
-  `;
 }
 
 function renderCarDetails() {
   const details = document.getElementById('carDetailSection');
   if (!details) return;
 
-  const params = new URLSearchParams(window.location.search);
-  const id = Number(params.get('id'));
+  const id = Number(new URLSearchParams(window.location.search).get('id'));
   const car = getDB().cars.find((item) => item.id === id);
 
   if (!car) {
@@ -317,20 +266,31 @@ function renderCarDetails() {
     return;
   }
 
-  details.innerHTML = `
-    <img src="${car.image}" alt="${car.name}" class="detail-img">
+  details.innerHTML = `<img src="${car.image}" alt="${car.name}" class="detail-img">
     <div class="detail-text glass-box left">
       <h1>${car.name} ${car.year}</h1>
       <p class="price">${formatCurrency(car.pricePerDay)} / día</p>
       <p class="muted">${car.description}</p>
-      <ul class="feature-list">
-        ${car.features.map((feature) => `<li>✅ ${feature}</li>`).join('')}
-        <li>✅ ${car.fuel}</li>
-        <li>✅ ${car.seats} pasajeros / ${car.luggage} maletas</li>
-      </ul>
+      <ul class="feature-list">${car.features.map((f) => `<li>✅ ${f}</li>`).join('')}</ul>
       <a href="checkout.html?id=${car.id}" class="btn-primary">Reservar este vehículo</a>
-    </div>
-  `;
+    </div>`;
+}
+
+function bookingBreakdown(pricePerDay, startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+  if (!Number.isFinite(days) || days <= 0) {
+    throw new Error('Fechas inválidas. La fecha final debe ser mayor.');
+  }
+
+  const subtotal = days * pricePerDay;
+  const serviceFee = days * 5;
+  const taxes = Number(((subtotal + serviceFee) * 0.18).toFixed(2));
+  const total = Number((subtotal + serviceFee + taxes).toFixed(2));
+
+  return { days, subtotal, serviceFee, taxes, total };
 }
 
 function handleCheckout() {
@@ -340,8 +300,7 @@ function handleCheckout() {
 
   if (!requireAuth()) return;
 
-  const params = new URLSearchParams(window.location.search);
-  const id = Number(params.get('id'));
+  const id = Number(new URLSearchParams(window.location.search).get('id'));
   const car = getDB().cars.find((item) => item.id === id);
 
   if (!car) {
@@ -355,17 +314,23 @@ function handleCheckout() {
   const startDate = document.getElementById('startDate');
   const endDate = document.getElementById('endDate');
   const totalText = document.getElementById('totalPrice');
-
-  const calcTotal = () => {
-    if (!startDate.value || !endDate.value) return car.pricePerDay;
-    const start = new Date(startDate.value);
-    const end = new Date(endDate.value);
-    const diffDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-    return diffDays * car.pricePerDay;
-  };
+  const summary = document.getElementById('checkoutSummary');
 
   const updateTotal = () => {
-    totalText.textContent = formatCurrency(calcTotal());
+    if (!startDate.value || !endDate.value) {
+      totalText.textContent = formatCurrency(0);
+      summary.textContent = 'Selecciona fechas para calcular el total.';
+      return;
+    }
+
+    try {
+      const breakdown = bookingBreakdown(car.pricePerDay, startDate.value, endDate.value);
+      totalText.textContent = formatCurrency(breakdown.total);
+      summary.textContent = `${breakdown.days} día(s): Subtotal ${formatCurrency(breakdown.subtotal)} + cargo servicio ${formatCurrency(breakdown.serviceFee)} + ITBIS ${formatCurrency(breakdown.taxes)}`;
+    } catch (error) {
+      totalText.textContent = formatCurrency(0);
+      summary.textContent = error.message;
+    }
   };
 
   startDate.addEventListener('change', updateTotal);
@@ -382,21 +347,31 @@ function handleCheckout() {
 
     const user = getCurrentUser();
     const db = getDB();
-    const total = calcTotal();
 
-    db.bookings.push({
-      id: Date.now(),
-      userId: user.id,
-      carId: car.id,
-      startDate: startDate.value,
-      endDate: endDate.value,
-      total,
-      status: 'confirmada'
-    });
+    try {
+      const breakdown = bookingBreakdown(car.pricePerDay, startDate.value, endDate.value);
 
-    saveDB(db);
-    document.getElementById('paymentBox').classList.add('hidden');
-    document.getElementById('successPaymentBox').classList.remove('hidden');
+      db.bookings.push({
+        id: Date.now(),
+        userId: user.id,
+        carId: car.id,
+        startDate: startDate.value,
+        endDate: endDate.value,
+        days: breakdown.days,
+        subtotal: breakdown.subtotal,
+        serviceFee: breakdown.serviceFee,
+        taxes: breakdown.taxes,
+        total: breakdown.total,
+        status: 'confirmada',
+        createdAt: new Date().toISOString()
+      });
+
+      saveDB(db);
+      document.getElementById('paymentBox').classList.add('hidden');
+      document.getElementById('successPaymentBox').classList.remove('hidden');
+    } catch (error) {
+      alert(error.message);
+    }
   });
 }
 
@@ -406,6 +381,7 @@ function handleContact() {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+
     const db = getDB();
     db.inquiries.push({
       id: Date.now(),
@@ -414,10 +390,39 @@ function handleContact() {
       message: document.getElementById('contactMessage').value.trim(),
       createdAt: new Date().toISOString()
     });
+
     saveDB(db);
     form.reset();
-    document.getElementById('contactSuccess').classList.remove('hidden');
+    document.getElementById('contactSuccess')?.classList.remove('hidden');
   });
+}
+
+function renderAdminPanel() {
+  if (!document.getElementById('adminStats')) return;
+  if (!requireAuth('admin')) return;
+
+  const db = getDB();
+
+  document.getElementById('adminStats').innerHTML = `<div><strong>${db.users.length}</strong><span>Usuarios</span></div>
+    <div><strong>${db.cars.length}</strong><span>Vehículos</span></div>
+    <div><strong>${db.bookings.length}</strong><span>Reservas</span></div>
+    <div><strong>${db.inquiries.length}</strong><span>Consultas</span></div>`;
+
+  document.getElementById('usersTable').innerHTML = db.users
+    .map((u) => `<tr><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td></tr>`)
+    .join('');
+
+  document.getElementById('bookingsTable').innerHTML = db.bookings
+    .map((b) => {
+      const customer = db.users.find((u) => u.id === b.userId)?.name || 'N/A';
+      const car = db.cars.find((c) => c.id === b.carId)?.name || 'N/A';
+      return `<tr><td>#${b.id}</td><td>${customer}</td><td>${car}</td><td>${b.days ?? '-'}</td><td>${formatCurrency(b.total || 0)}</td></tr>`;
+    })
+    .join('');
+
+  document.getElementById('inquiriesTable').innerHTML = db.inquiries
+    .map((i) => `<tr><td>${i.name}</td><td>${i.email}</td><td>${i.message}</td></tr>`)
+    .join('');
 }
 
 function initPage() {
@@ -425,18 +430,19 @@ function initPage() {
   const page = document.body.dataset.page;
   updateNavUser();
 
-  if (page === 'login' && getCurrentUser()) window.location.href = 'dashboard.html';
-  if (page === 'dashboard') requireAuth();
+  if (page === 'login' && getCurrentUser()) window.location.href = resolveRoleHome(getCurrentUser().role);
+  if (page === 'admin') requireAuth('admin');
+  if (page === 'customer') requireAuth('customer');
+  if (page === 'agent') requireAuth('agent');
 
   handleLogin();
   handleRegister();
-  handleForgotPassword();
   renderCatalog();
   setupFilters();
-  renderFeaturedStats();
   renderCarDetails();
   handleCheckout();
   handleContact();
+  renderAdminPanel();
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
