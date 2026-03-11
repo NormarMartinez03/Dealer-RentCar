@@ -26,7 +26,13 @@
       </label>
       <label class="input-group">
         <span class="material-symbols-outlined">key</span>
-        <input type="password" id="registerPassword" minlength="6" placeholder="Contraseña" required>
+        <input type="password" id="registerPassword" minlength="8" placeholder="Contraseña segura (mínimo 8)" required>
+      </label>
+      <label class="input-group no-icon">
+        <select id="registerRole" required>
+          <option value="customer">Cliente</option>
+          <option value="agent">Agente</option>
+        </select>
       </label>
       <button type="submit" class="btn-primary">Crear cuenta</button>
     </form>
