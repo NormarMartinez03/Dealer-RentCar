@@ -7,6 +7,7 @@
     "start": "npm run serve",
     "serve": "python -m http.server 8000",
     "check": "node --check app.js",
-    "validate": "npm run check"
+    "validate": "npm run check",
+    "test": "npm run check"
   }
 }
