@@ -72,13 +72,44 @@ const seedData = {
   inquiries: []
 };
 
+
+function safeJSONParse(value, fallback) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizeLegacyBooking(booking, db) {
+  if (booking.days && booking.subtotal !== undefined && booking.total !== undefined) return booking;
+  const car = db.cars.find((item) => item.id === booking.carId);
+  if (!car || !booking.startDate || !booking.endDate) return booking;
+
+  try {
+    const breakdown = bookingBreakdown(car.pricePerDay, booking.startDate, booking.endDate);
+    return {
+      ...booking,
+      days: breakdown.days,
+      subtotal: breakdown.subtotal,
+      serviceFee: breakdown.serviceFee,
+      taxes: breakdown.taxes,
+      total: breakdown.total
+    };
+  } catch {
+    return booking;
+  }
+}
+
 function getDB() {
   const db = localStorage.getItem(DB_KEY);
   if (!db) {
     localStorage.setItem(DB_KEY, JSON.stringify(seedData));
     return structuredClone(seedData);
   }
-  return JSON.parse(db);
+  const parsed = safeJSONParse(db, structuredClone(seedData));
+  parsed.bookings = (parsed.bookings || []).map((item) => normalizeLegacyBooking(item, parsed));
+  return parsed;
 }
 
 function saveDB(db) {
