@@ -1,155 +1,56 @@
-const DB_KEY = 'rentcar_db';
 const CURRENT_USER_KEY = 'rentcar_current_user';
-
-const seedData = {
-  users: [
-    {
-      id: 1,
-      name: 'Administrador',
-      email: 'admin@rentcar.com',
-      password: 'Admin123*',
-      phone: '3000000000',
-      role: 'admin'
-    }
-  ],
-  cars: [
-    {
-      id: 1,
-      name: 'Toyota Corolla',
-      brand: 'Toyota',
-      model: 'Corolla',
-      year: 2026,
-      category: 'economico',
-      transmission: 'Automática',
-      fuel: 'Gasolina',
-      seats: 5,
-      luggage: 2,
-      location: 'Santo Domingo',
-      pricePerDay: 45,
-      rating: 4.7,
-      image: 'https://media.ed.edmunds-media.com/toyota/corolla/2026/oem/2026_toyota_corolla_sedan_xse_fq_oem_1_600.jpg',
-      features: ['Aire acondicionado', 'Bluetooth', 'GPS', 'Seguro básico'],
-      description: 'Excelente para ciudad y viajes cortos. Muy cómodo, de bajo consumo y fácil conducción.'
-    },
-    {
-      id: 2,
-      name: 'Ferrari La Ferrari',
-      brand: 'Ferrari',
-      model: 'La Ferrari',
-      year: 2024,
-      category: 'Deportivo',
-      transmission: 'Automática',
-      fuel: 'Gasolina',
-      seats: 2,
-      luggage: 4,
-      location: 'Santiago',
-      pricePerDay: 75,
-      rating: 4.8,
-      image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1200&q=80',
-      features: ['Cámara de reversa', 'Apple CarPlay', 'Asistente carril', 'Seguro premium'],
-      description: 'SUV potente, ideal para familias y viajes en carretera con alto confort.'
-    },
-    {
-      id: 3,
-      name: 'BMW X5',
-      brand: 'BMW',
-      model: 'X5',
-      year: 2024,
-      category: 'lujo',
-      transmission: 'Automática',
-      fuel: 'Híbrido',
-      seats: 5,
-      luggage: 5,
-      location: 'Bani',
-      pricePerDay: 140,
-      rating: 4.9,
-      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1200&q=80',
-      features: ['Asientos en cuero', 'Sunroof', 'Sonido premium', 'Seguro todo riesgo'],
-      description: 'Vehículo de lujo para una experiencia premium con máxima seguridad y potencia.'
-    },
-    {
-      id: 4,
-      name: 'Mercedes-Benz C-Class',
-      brand: 'Mercedes-Benz',
-      model: 'C-Class',
-      year: 2022,
-      category: 'economico',
-      transmission: 'Automática',
-      fuel: 'Gasolina',
-      seats: 5,
-      luggage: 2,
-      location: 'Punta Cana',
-      pricePerDay: 39,
-      rating: 4.5,
-      image: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=1200&q=80',
-      features: ['Aire acondicionado', 'USB', 'Seguro básico', 'Frenos ABS'],
-      description: 'Compacto y eficiente para moverte por la ciudad con ahorro y comodidad.'
-    },
-    {
-      id: 5,
-      name: 'Jeep Wrangler',
-      brand: 'Jeep',
-      model: 'Wrangler',
-      year: 2023,
-      category: 'SUV',
-      transmission: 'Manual',
-      fuel: 'Gasolina',
-      seats: 4,
-      luggage: 3,
-      location: 'Santo Domingo',
-      pricePerDay: 60,
-      rating: 4.6,
-      image: 'https://www.jeep.com/content/dam/cross-regional/global/jeep/2023/wrangler/exterior/desktop/MY23-Wrangler-Exterior-Slider-Rubicon-Desktop.jpg',
-      features: ['Tracción 4x4', 'Bluetooth', 'GPS', 'Seguro básico'],
-      description: 'Ideal para aventuras off-road y escapadas de fin de semana con estilo robusto.'
-    },
-  ],
-  bookings: [],
-  inquiries: []
-};
-
-function getDB() {
-  const db = localStorage.getItem(DB_KEY);
-  if (!db) {
-    localStorage.setItem(DB_KEY, JSON.stringify(seedData));
-    return structuredClone(seedData);
-  }
-  return JSON.parse(db);
-}
-
-function saveDB(db) {
-  localStorage.setItem(DB_KEY, JSON.stringify(db));
-}
+const AUTH_TOKEN_KEY = 'rentcar_token';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 function getCurrentUser() {
-  const user = localStorage.getItem(CURRENT_USER_KEY);
-  return user ? JSON.parse(user) : null;
+  const data = localStorage.getItem(CURRENT_USER_KEY);
+  return data ? JSON.parse(data) : null;
 }
 
-function setCurrentUser(user) {
+function setSession(user, token) {
   localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
+}
+
+function getToken() {
+  return localStorage.getItem(AUTH_TOKEN_KEY) || '';
 }
 
 function logout() {
   localStorage.removeItem(CURRENT_USER_KEY);
+  localStorage.removeItem(AUTH_TOKEN_KEY);
   window.location.href = 'index.html';
 }
 
-function requireAuth(redirect = 'index.html') {
-  if (!getCurrentUser()) {
-    alert('Debes iniciar sesión para continuar.');
-    window.location.href = redirect;
+function formatCurrency(value) {
+  return new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(value);
+}
+
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Error del servidor');
+  return data;
+}
+
+function requireAuth(role) {
+  const user = getCurrentUser();
+  if (!user) {
+    alert('Debes iniciar sesión.');
+    window.location.href = 'index.html';
+    return false;
+  }
+  if (role && user.role !== role) {
+    alert('No tienes permisos para esta vista.');
+    const redirectMap = { admin: 'admin.html', customer: 'customer.html', agent: 'agent.html' };
+    window.location.href = redirectMap[user.role] || 'catalog.html';
     return false;
   }
   return true;
-}
-
-function formatCurrency(value) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0
-  }).format(value);
 }
 
 function updateNavUser() {
@@ -157,286 +58,256 @@ function updateNavUser() {
   const userName = document.getElementById('navUserName');
   const authLinks = document.getElementById('navAuthLinks');
 
-  if (user && userName) userName.textContent = `Hola, ${user.name}`;
+  if (userName && user) userName.textContent = `Hola, ${user.name} (${user.role})`;
   if (!authLinks) return;
 
   if (user) {
     authLinks.innerHTML = '<button class="btn-ghost" id="logoutBtn">Salir</button>';
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
   } else {
     authLinks.innerHTML = '<a href="index.html" class="btn-ghost">Ingresar</a>';
   }
 }
 
-function handleRegister() {
-  const form = document.getElementById('registerForm');
-  if (!form) return;
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const db = getDB();
-
-    const name = document.getElementById('registerName').value.trim();
-    const email = document.getElementById('registerEmail').value.trim().toLowerCase();
-    const phone = document.getElementById('registerPhone').value.trim();
-    const password = document.getElementById('registerPassword').value;
-
-    if (db.users.some((u) => u.email === email)) {
-      alert('Este correo ya está registrado.');
-      return;
-    }
-
-    const newUser = {
-      id: Date.now(),
-      name,
-      email,
-      phone,
-      password,
-      role: 'customer'
-    };
-
-    db.users.push(newUser);
-    saveDB(db);
-    setCurrentUser({ id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role });
-    window.location.href = 'dashboard.html';
-  });
+function resolveRoleHome(role) {
+  if (role === 'admin') return 'admin.html';
+  if (role === 'agent') return 'agent.html';
+  return 'customer.html';
 }
 
 function handleLogin() {
   const form = document.getElementById('loginForm');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    const pass = document.getElementById('pass').value;
-
-    const db = getDB();
-    const user = db.users.find((u) => u.email === email && u.password === pass);
-
-    if (!user) {
-      alert('Credenciales inválidas.');
-      return;
+    try {
+      const payload = {
+        email: document.getElementById('email').value.trim().toLowerCase(),
+        password: document.getElementById('pass').value
+      };
+      const { user, token } = await api('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
+      setSession(user, token);
+      window.location.href = resolveRoleHome(user.role);
+    } catch (error) {
+      alert(error.message);
     }
-
-    setCurrentUser({ id: user.id, name: user.name, email: user.email, role: user.role });
-    window.location.href = 'dashboard.html';
   });
 }
 
-function handleForgotPassword() {
-  const form = document.getElementById('forgotForm');
+function handleRegister() {
+  const form = document.getElementById('registerForm');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
-    const db = getDB();
-
-    if (!db.users.some((u) => u.email === email)) {
-      alert('No encontramos una cuenta con este correo.');
-      return;
+    try {
+      const payload = {
+        name: document.getElementById('registerName').value.trim(),
+        email: document.getElementById('registerEmail').value.trim().toLowerCase(),
+        phone: document.getElementById('registerPhone').value.trim(),
+        password: document.getElementById('registerPassword').value,
+        role: document.getElementById('registerRole')?.value || 'customer'
+      };
+      const { user, token } = await api('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
+      setSession(user, token);
+      window.location.href = resolveRoleHome(user.role);
+    } catch (error) {
+      alert(error.message);
     }
-
-    document.getElementById('recoveryBox').classList.add('hidden');
-    document.getElementById('successBox').classList.remove('hidden');
   });
 }
 
-function renderCatalog() {
+async function renderCatalog() {
   const grid = document.getElementById('vehicleGrid');
   if (!grid) return;
 
-  const db = getDB();
-  const category = document.getElementById('filterCategory')?.value || 'todos';
-  const location = document.getElementById('filterLocation')?.value || 'todos';
-  const maxPrice = Number(document.getElementById('filterPrice')?.value || 9999);
-
-  const cars = db.cars.filter((car) => {
-    const byCategory = category === 'todos' || car.category === category;
-    const byLocation = location === 'todos' || car.location === location;
-    const byPrice = car.pricePerDay <= maxPrice;
-    return byCategory && byLocation && byPrice;
+  const params = new URLSearchParams({
+    category: document.getElementById('filterCategory')?.value || 'todos',
+    location: document.getElementById('filterLocation')?.value || 'todos',
+    maxPrice: document.getElementById('filterPrice')?.value || '9999'
   });
 
-  if (!cars.length) {
-    grid.innerHTML = '<p class="empty-state">No hay vehículos con esos filtros.</p>';
-    return;
-  }
+  try {
+    const cars = await api(`/cars?${params.toString()}`);
+    if (!cars.length) {
+      grid.innerHTML = '<p class="empty-state">No hay vehículos con esos filtros.</p>';
+      return;
+    }
 
-  grid.innerHTML = cars
-    .map(
-      (car) => `
-      <article class="car-card">
-        <img src="${car.image}" alt="${car.name}">
-        <div class="car-info">
-          <div class="car-top-line">
-            <span class="badge">${car.category}</span>
-            <span>⭐ ${car.rating}</span>
+    grid.innerHTML = cars
+      .map(
+        (car) => `<article class="car-card">
+          <img src="${car.image}" alt="${car.name}">
+          <div class="car-info">
+            <div class="car-top-line"><span class="badge">${car.category}</span><span>⭐ ${car.rating}</span></div>
+            <h3>${car.name} (${car.year})</h3>
+            <p class="muted">${car.location} • ${car.transmission} • ${car.seats} pasajeros</p>
+            <p class="price">${formatCurrency(car.pricePerDay)}<span>/día</span></p>
+            <a class="btn-primary" href="car-details.html?id=${car.id}">Ver detalles</a>
           </div>
-          <h3>${car.name} (${car.year})</h3>
-          <p class="muted">${car.location} • ${car.transmission} • ${car.seats} pasajeros</p>
-          <p class="price">${formatCurrency(car.pricePerDay)}<span>/día</span></p>
-          <a class="btn-primary" href="car-details.html?id=${car.id}">Ver detalles</a>
-        </div>
-      </article>`
-    )
-    .join('');
+        </article>`
+      )
+      .join('');
+  } catch (error) {
+    grid.innerHTML = `<p class="empty-state">${error.message}. Asegura que el backend esté ejecutándose.</p>`;
+  }
 }
 
 function setupFilters() {
   ['filterCategory', 'filterLocation', 'filterPrice'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', renderCatalog);
+    document.getElementById(id)?.addEventListener('change', renderCatalog);
   });
 }
 
-function renderFeaturedStats() {
-  const stats = document.getElementById('statsBox');
-  if (!stats) return;
-
-  const db = getDB();
-  stats.innerHTML = `
-    <div><strong>${db.cars.length}</strong><span>Vehículos</span></div>
-    <div><strong>${db.bookings.length}</strong><span>Reservas</span></div>
-    <div><strong>${db.users.length}</strong><span>Usuarios</span></div>
-  `;
-}
-
-function renderCarDetails() {
+async function renderCarDetails() {
   const details = document.getElementById('carDetailSection');
   if (!details) return;
+  const id = Number(new URLSearchParams(window.location.search).get('id'));
 
-  const params = new URLSearchParams(window.location.search);
-  const id = Number(params.get('id'));
-  const car = getDB().cars.find((item) => item.id === id);
-
-  if (!car) {
-    details.innerHTML = '<p class="empty-state">Vehículo no encontrado.</p>';
-    return;
+  try {
+    const car = await api(`/cars/${id}`);
+    details.innerHTML = `<img src="${car.image}" alt="${car.name}" class="detail-img">
+      <div class="detail-text glass-box left">
+        <h1>${car.name} ${car.year}</h1>
+        <p class="price">${formatCurrency(car.pricePerDay)} / día</p>
+        <p class="muted">${car.description}</p>
+        <ul class="feature-list">${car.features.map((f) => `<li>✅ ${f}</li>`).join('')}</ul>
+        <a href="checkout.html?id=${car.id}" class="btn-primary">Reservar este vehículo</a>
+      </div>`;
+  } catch (error) {
+    details.innerHTML = `<p class="empty-state">${error.message}</p>`;
   }
-
-  details.innerHTML = `
-    <img src="${car.image}" alt="${car.name}" class="detail-img">
-    <div class="detail-text glass-box left">
-      <h1>${car.name} ${car.year}</h1>
-      <p class="price">${formatCurrency(car.pricePerDay)} / día</p>
-      <p class="muted">${car.description}</p>
-      <ul class="feature-list">
-        ${car.features.map((feature) => `<li>✅ ${feature}</li>`).join('')}
-        <li>✅ ${car.fuel}</li>
-        <li>✅ ${car.seats} pasajeros / ${car.luggage} maletas</li>
-      </ul>
-      <a href="checkout.html?id=${car.id}" class="btn-primary">Reservar este vehículo</a>
-    </div>
-  `;
 }
 
-function handleCheckout() {
+function bookingBreakdown(pricePerDay, startDate, endDate) {
+  const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+  if (!Number.isFinite(days) || days <= 0) throw new Error('Fechas inválidas. La fecha final debe ser mayor.');
+  const subtotal = days * pricePerDay;
+  const serviceFee = days * 5;
+  const taxes = Number(((subtotal + serviceFee) * 0.18).toFixed(2));
+  return { days, subtotal, serviceFee, taxes, total: Number((subtotal + serviceFee + taxes).toFixed(2)) };
+}
+
+async function handleCheckout() {
   const wrap = document.getElementById('checkoutWrapper');
   const form = document.getElementById('checkoutForm');
   if (!wrap || !form) return;
-
   if (!requireAuth()) return;
 
-  const params = new URLSearchParams(window.location.search);
-  const id = Number(params.get('id'));
-  const car = getDB().cars.find((item) => item.id === id);
+  const id = Number(new URLSearchParams(window.location.search).get('id'));
+  const summary = document.getElementById('checkoutSummary');
 
-  if (!car) {
-    wrap.innerHTML = '<p class="empty-state">Vehículo no encontrado para reservar.</p>';
-    return;
-  }
+  try {
+    const car = await api(`/cars/${id}`);
+    document.getElementById('checkoutCar').textContent = `${car.name} ${car.year}`;
+    document.getElementById('checkoutPrice').textContent = formatCurrency(car.pricePerDay);
 
-  document.getElementById('checkoutCar').textContent = `${car.name} ${car.year}`;
-  document.getElementById('checkoutPrice').textContent = formatCurrency(car.pricePerDay);
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
 
-  const startDate = document.getElementById('startDate');
-  const endDate = document.getElementById('endDate');
-  const totalText = document.getElementById('totalPrice');
+    const update = () => {
+      if (!startDate.value || !endDate.value) {
+        summary.textContent = 'Selecciona fechas para calcular el total.';
+        return;
+      }
+      try {
+        const b = bookingBreakdown(car.pricePerDay, startDate.value, endDate.value);
+        document.getElementById('totalPrice').textContent = formatCurrency(b.total);
+        summary.textContent = `${b.days} día(s): Subtotal ${formatCurrency(b.subtotal)} + cargo servicio ${formatCurrency(b.serviceFee)} + ITBIS ${formatCurrency(b.taxes)}`;
+      } catch (err) {
+        summary.textContent = err.message;
+      }
+    };
 
-  const calcTotal = () => {
-    if (!startDate.value || !endDate.value) return car.pricePerDay;
-    const start = new Date(startDate.value);
-    const end = new Date(endDate.value);
-    const diffDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-    return diffDays * car.pricePerDay;
-  };
+    startDate.addEventListener('change', update);
+    endDate.addEventListener('change', update);
+    update();
 
-  const updateTotal = () => {
-    totalText.textContent = formatCurrency(calcTotal());
-  };
-
-  startDate.addEventListener('change', updateTotal);
-  endDate.addEventListener('change', updateTotal);
-  updateTotal();
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    if (!startDate.value || !endDate.value) {
-      alert('Selecciona fechas válidas.');
-      return;
-    }
-
-    const user = getCurrentUser();
-    const db = getDB();
-    const total = calcTotal();
-
-    db.bookings.push({
-      id: Date.now(),
-      userId: user.id,
-      carId: car.id,
-      startDate: startDate.value,
-      endDate: endDate.value,
-      total,
-      status: 'confirmada'
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await api('/bookings', {
+          method: 'POST',
+          body: JSON.stringify({ carId: car.id, startDate: startDate.value, endDate: endDate.value })
+        });
+        document.getElementById('paymentBox').classList.add('hidden');
+        document.getElementById('successPaymentBox').classList.remove('hidden');
+      } catch (error) {
+        alert(error.message);
+      }
     });
-
-    saveDB(db);
-    document.getElementById('paymentBox').classList.add('hidden');
-    document.getElementById('successPaymentBox').classList.remove('hidden');
-  });
+  } catch (error) {
+    wrap.innerHTML = `<p class="empty-state">${error.message}</p>`;
+  }
 }
 
 function handleContact() {
   const form = document.getElementById('contactForm');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const db = getDB();
-    db.inquiries.push({
-      id: Date.now(),
-      name: document.getElementById('contactName').value.trim(),
-      email: document.getElementById('contactEmail').value.trim(),
-      message: document.getElementById('contactMessage').value.trim(),
-      createdAt: new Date().toISOString()
-    });
-    saveDB(db);
-    form.reset();
-    document.getElementById('contactSuccess').classList.remove('hidden');
+    try {
+      await api('/inquiries', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: document.getElementById('contactName').value.trim(),
+          email: document.getElementById('contactEmail').value.trim(),
+          message: document.getElementById('contactMessage').value.trim()
+        })
+      });
+      form.reset();
+      document.getElementById('contactSuccess').classList.remove('hidden');
+    } catch (error) {
+      alert(error.message);
+    }
   });
 }
 
+async function renderAdminPanel() {
+  if (!document.getElementById('adminStats')) return;
+  if (!requireAuth('admin')) return;
+
+  try {
+    const [stats, users, bookings, inquiries] = await Promise.all([
+      api('/admin/stats'),
+      api('/admin/users'),
+      api('/admin/bookings'),
+      api('/admin/inquiries')
+    ]);
+
+    document.getElementById('adminStats').innerHTML = `<div><strong>${stats.users}</strong><span>Usuarios</span></div>
+      <div><strong>${stats.cars}</strong><span>Vehículos</span></div>
+      <div><strong>${stats.bookings}</strong><span>Reservas</span></div>
+      <div><strong>${stats.inquiries}</strong><span>Consultas</span></div>`;
+
+    document.getElementById('usersTable').innerHTML = users.map((u) => `<tr><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td></tr>`).join('');
+    document.getElementById('bookingsTable').innerHTML = bookings.map((b) => `<tr><td>#${b.id}</td><td>${b.customer}</td><td>${b.car}</td><td>${b.days}</td><td>${formatCurrency(b.total)}</td></tr>`).join('');
+    document.getElementById('inquiriesTable').innerHTML = inquiries.map((i) => `<tr><td>${i.name}</td><td>${i.email}</td><td>${i.message}</td></tr>`).join('');
+  } catch (error) {
+    document.getElementById('adminStats').innerHTML = `<p class="empty-state">${error.message}</p>`;
+  }
+}
+
 function initPage() {
-  getDB();
   const page = document.body.dataset.page;
   updateNavUser();
 
-  if (page === 'login' && getCurrentUser()) window.location.href = 'dashboard.html';
-  if (page === 'dashboard') requireAuth();
+  if (page === 'login' && getCurrentUser()) window.location.href = resolveRoleHome(getCurrentUser().role);
+
+  if (page === 'admin') requireAuth('admin');
+  if (page === 'customer') requireAuth('customer');
+  if (page === 'agent') requireAuth('agent');
 
   handleLogin();
   handleRegister();
-  handleForgotPassword();
   renderCatalog();
   setupFilters();
-  renderFeaturedStats();
   renderCarDetails();
   handleCheckout();
   handleContact();
+  renderAdminPanel();
 }
 
 document.addEventListener('DOMContentLoaded', initPage);

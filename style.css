@@ -316,3 +316,31 @@ h1 span, h2 span { color: var(--primary); }
     grid-template-columns: 1fr;
   }
 }
+
+.input-group select {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #fff;
+  padding: 12px;
+}
+
+.table-wrap {
+  width: min(94vw, 1100px);
+  margin: 18px auto;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th, td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px;
+  text-align: left;
+  font-size: 0.9rem;
+}
