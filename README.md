@@ -11,6 +11,11 @@ RentCar Express es una plataforma web que permite gestionar el alquiler de vehí
 🚗 Catálogo de vehículos interactivo (`catalog.html`) conectado con la API.  
 💳 Sistema de checkout con cálculo automático de **precio por día**, **cargo de servicio** e **impuestos**.
 
+## 🌐 Aplicación en línea
+Puedes acceder a la versión desplegada del sistema RentCar Express en el siguiente enlace:
+🔗 https://matoscx.github.io/Dealer-RentCar/
+Esta versión está publicada utilizando GitHub Pages y permite visualizar el funcionamiento del sistema directamente desde el navegador sin necesidad de instalación.
+
 ## 🛠 Tecnologías utilizadas
 Node.js  
 Express.js  
