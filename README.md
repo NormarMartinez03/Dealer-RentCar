@@ -13,7 +13,7 @@ RentCar Express es una plataforma web que permite gestionar el alquiler de vehí
 
 ## 🛠 Tecnologías utilizadas
 Node.js  
-Express  
+Express.js 
 SQLite  
 HTML  
 CSS  
