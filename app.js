@@ -10,6 +10,14 @@ const seedData = {
       password: 'Admin123*',
       phone: '3000000000',
       role: 'admin'
+    },
+    {
+      id: 2,
+      name: 'Agente de Renta',
+      email: 'empleado@rentcar.com',
+      password: 'Empleado123*',
+      phone: '3001111111',
+      role: 'agent'
     }
   ],
   cars: [
@@ -37,7 +45,7 @@ const seedData = {
       brand: 'Ferrari',
       model: 'La Ferrari',
       year: 2024,
-      category: 'Deportivo',
+      category: 'deportivo',
       transmission: 'Automática',
       fuel: 'Gasolina',
       seats: 2,
@@ -91,7 +99,7 @@ const seedData = {
       brand: 'Jeep',
       model: 'Wrangler',
       year: 2023,
-      category: 'SUV',
+      category: 'suv',
       transmission: 'Manual',
       fuel: 'Gasolina',
       seats: 4,
@@ -114,7 +122,12 @@ function getDB() {
     localStorage.setItem(DB_KEY, JSON.stringify(seedData));
     return structuredClone(seedData);
   }
-  return JSON.parse(db);
+  const parsedDB = JSON.parse(db);
+  if (!Array.isArray(parsedDB.users) || !Array.isArray(parsedDB.cars) || !Array.isArray(parsedDB.bookings)) {
+    localStorage.setItem(DB_KEY, JSON.stringify(seedData));
+    return structuredClone(seedData);
+  }
+  return parsedDB;
 }
 
 function saveDB(db) {
@@ -142,6 +155,23 @@ function requireAuth(redirect = 'index.html') {
     return false;
   }
   return true;
+}
+
+function requireRole(allowedRoles, redirect = 'dashboard.html') {
+  const user = getCurrentUser();
+  if (!user) return false;
+  if (!allowedRoles.includes(user.role)) {
+    alert('No tienes permisos para entrar a esta sección.');
+    window.location.href = redirect;
+    return false;
+  }
+  return true;
+}
+
+function getHomeByRole(role) {
+  if (role === 'admin') return 'admin.html';
+  if (role === 'agent') return 'agent.html';
+  return 'dashboard.html';
 }
 
 function formatCurrency(value) {
@@ -221,8 +251,102 @@ function handleLogin() {
     }
 
     setCurrentUser({ id: user.id, name: user.name, email: user.email, role: user.role });
-    window.location.href = 'dashboard.html';
+    window.location.href = getHomeByRole(user.role);
   });
+}
+
+function renderAdminPanel() {
+  const stats = document.getElementById('adminStats');
+  const usersTable = document.getElementById('usersTable');
+  const bookingsTable = document.getElementById('bookingsTable');
+  const inquiriesTable = document.getElementById('inquiriesTable');
+  if (!stats || !usersTable || !bookingsTable || !inquiriesTable) return;
+
+  const db = getDB();
+
+  stats.innerHTML = `
+    <div><strong>${db.users.length}</strong><span>Usuarios</span></div>
+    <div><strong>${db.cars.length}</strong><span>Vehículos</span></div>
+    <div><strong>${db.bookings.length}</strong><span>Reservas</span></div>
+  `;
+
+  usersTable.innerHTML = db.users
+    .map((user) => `<tr><td>${user.name}</td><td>${user.email}</td><td><span class="status-chip">${user.role}</span></td></tr>`)
+    .join('');
+
+  bookingsTable.innerHTML = db.bookings.length
+    ? db.bookings
+        .map((booking) => {
+          const customer = db.users.find((user) => user.id === booking.userId);
+          const car = db.cars.find((item) => item.id === booking.carId);
+          return `
+            <tr>
+              <td>#${booking.id}</td>
+              <td>${customer?.name || 'Cliente'}</td>
+              <td>${car?.name || 'Vehículo'}</td>
+              <td>${booking.startDate} → ${booking.endDate}</td>
+              <td>${formatCurrency(booking.total)}</td>
+            </tr>`;
+        })
+        .join('')
+    : '<tr><td colspan="5" class="empty-state">Aún no hay reservas registradas.</td></tr>';
+
+  inquiriesTable.innerHTML = db.inquiries.length
+    ? db.inquiries
+        .map((inq) => `<tr><td>${inq.name}</td><td>${inq.email}</td><td>${inq.message}</td></tr>`)
+        .join('')
+    : '<tr><td colspan="3" class="empty-state">No hay consultas por responder.</td></tr>';
+}
+
+function getRentalStatus(booking) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(booking.startDate);
+  const end = new Date(booking.endDate);
+
+  if (end < today) return 'finalizado';
+  if (start > today) return 'programado';
+  return 'en curso';
+}
+
+function renderAgentPanel() {
+  const body = document.getElementById('agentBookingsTable');
+  const stats = document.getElementById('agentStats');
+  if (!body || !stats) return;
+
+  const db = getDB();
+  const tracked = db.bookings.map((booking) => {
+    const status = getRentalStatus(booking);
+    const customer = db.users.find((user) => user.id === booking.userId);
+    const car = db.cars.find((item) => item.id === booking.carId);
+    return { booking, status, customer, car };
+  });
+
+  const inProgress = tracked.filter((item) => item.status === 'en curso').length;
+  const scheduled = tracked.filter((item) => item.status === 'programado').length;
+  const finished = tracked.filter((item) => item.status === 'finalizado').length;
+
+  stats.innerHTML = `
+    <div><strong>${inProgress}</strong><span>En curso</span></div>
+    <div><strong>${scheduled}</strong><span>Programados</span></div>
+    <div><strong>${finished}</strong><span>Finalizados</span></div>
+  `;
+
+  body.innerHTML = tracked.length
+    ? tracked
+        .map(
+          ({ booking, status, customer, car }) => `
+          <tr>
+            <td>#${booking.id}</td>
+            <td>${customer?.name || 'Cliente'}</td>
+            <td>${car?.name || 'Vehículo'}</td>
+            <td>${booking.startDate}</td>
+            <td>${booking.endDate}</td>
+            <td><span class="status-chip ${status.replace(' ', '-')}">${status}</span></td>
+          </tr>`
+        )
+        .join('')
+    : '<tr><td colspan="6" class="empty-state">No hay alquileres para seguimiento.</td></tr>';
 }
 
 function handleForgotPassword() {
@@ -424,9 +548,16 @@ function initPage() {
   getDB();
   const page = document.body.dataset.page;
   updateNavUser();
+  const user = getCurrentUser();
 
-  if (page === 'login' && getCurrentUser()) window.location.href = 'dashboard.html';
+  if (page === 'login' && user) window.location.href = getHomeByRole(user.role);
   if (page === 'dashboard') requireAuth();
+  if (page === 'admin') {
+    if (!requireAuth() || !requireRole(['admin'])) return;
+  }
+  if (page === 'agent') {
+    if (!requireAuth() || !requireRole(['admin', 'agent'])) return;
+  }
 
   handleLogin();
   handleRegister();
@@ -437,6 +568,8 @@ function initPage() {
   renderCarDetails();
   handleCheckout();
   handleContact();
+  renderAdminPanel();
+  renderAgentPanel();
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
