@@ -99,7 +99,7 @@ const seedData = {
       location: 'Santo Domingo',
       pricePerDay: 60,
       rating: 4.6,
-      image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
+      image: 'https://www.jeep.com/content/dam/cross-regional/global/jeep/2023/wrangler/exterior/desktop/MY23-Wrangler-Exterior-Slider-Rubicon-Desktop.jpg',
       features: ['Tracción 4x4', 'Bluetooth', 'GPS', 'Seguro básico'],
       description: 'Ideal para aventuras off-road y escapadas de fin de semana con estilo robusto.'
     },

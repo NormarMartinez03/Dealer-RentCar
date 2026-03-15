@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Panel Admin</title><link rel="stylesheet" href="style.css"></head>
+<body data-page="admin">
+  <nav class="navbar"><div class="nav-logo"><h2>RentCar<span>Express</span></h2></div><ul class="nav-links"><li><a href="admin.html" class="active">Admin</a></li><li><a href="catalog.html">Catálogo</a></li></ul><div class="nav-user"><span id="navUserName"></span><div id="navAuthLinks"></div></div></nav>
+  <header class="page-header"><h1>Panel administrativo</h1><p>Métricas, usuarios, reservas y consultas.</p></header>
+  <section class="stats-box" id="adminStats"></section>
+  <section class="glass-box table-wrap"><h3>Usuarios</h3><table><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th></tr></thead><tbody id="usersTable"></tbody></table></section>
+  <section class="glass-box table-wrap"><h3>Reservas</h3><table><thead><tr><th>ID</th><th>Cliente</th><th>Vehículo</th><th>Días</th><th>Total</th></tr></thead><tbody id="bookingsTable"></tbody></table></section>
+  <section class="glass-box table-wrap"><h3>Consultas</h3><table><thead><tr><th>Nombre</th><th>Email</th><th>Mensaje</th></tr></thead><tbody id="inquiriesTable"></tbody></table></section>
+  <script src="app.js"></script>
+</body>
+</html>
