@@ -27,6 +27,15 @@
         <label class="input-group no-icon">
           <input type="text" placeholder="Nombre en tarjeta" required>
         </label>
+        <label class="input-group no-icon">
+          <input type="email" id="billingEmail" placeholder="Correo para factura" required>
+        </label>
+        <div class="invoice-breakdown">
+          <p>Días: <strong id="summaryDays">0</strong></p>
+          <p>Subtotal: <strong id="summarySubtotal"></strong></p>
+          <p>ITBIS (18%): <strong id="summaryItbis"></strong></p>
+          <p>NCF: <strong id="summaryNcf">-</strong></p>
+        </div>
         <p>Total a pagar: <strong id="totalPrice"></strong></p>
         <button class="btn-primary" type="submit">Pagar y reservar</button>
       </form>
@@ -35,7 +44,7 @@
     <div class="hidden" id="successPaymentBox">
       <span class="material-symbols-outlined success-icon">check_circle</span>
       <h2>¡Reserva confirmada!</h2>
-      <p class="muted">Tu pago fue procesado correctamente.</p>
+      <p class="muted" id="successPaymentMessage">Tu pago fue procesado correctamente.</p>
       <a href="dashboard.html" class="btn-primary">Volver al catálogo</a>
     </div>
   </div>
