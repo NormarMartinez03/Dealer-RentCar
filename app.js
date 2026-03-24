@@ -125,15 +125,17 @@ function getDB() {
     return structuredClone(seedData);
   }
   const parsedDB = JSON.parse(db);
-  if (
-    !Array.isArray(parsedDB.users) ||
-    !Array.isArray(parsedDB.cars) ||
-    !Array.isArray(parsedDB.bookings) ||
-    !Array.isArray(parsedDB.outbox)
-  ) {
+  if (!Array.isArray(parsedDB.users) || !Array.isArray(parsedDB.cars) || !Array.isArray(parsedDB.bookings)) {
     localStorage.setItem(DB_KEY, JSON.stringify(seedData));
     return structuredClone(seedData);
   }
+  if (!Array.isArray(parsedDB.inquiries)) {
+    parsedDB.inquiries = [];
+  }
+  if (!Array.isArray(parsedDB.outbox)) {
+    parsedDB.outbox = [];
+  }
+  saveDB(parsedDB);
   return parsedDB;
 }
 
