@@ -267,6 +267,63 @@ function updateNavUser() {
   }
 }
 
+function getRoleLevel(role) {
+  if (role === 'admin') return 3;
+  if (role === 'agent') return 2;
+  return 1;
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  if (!sidebar) return;
+
+  const user = getCurrentUser();
+  if (!user) return;
+
+  const items = [
+    { href: 'dashboard.html', label: 'Dashboard', icon: '🏠', minRole: 'customer' },
+    { href: 'catalog.html', label: 'Catálogo', icon: '🚗', minRole: 'customer' },
+    { href: 'customer.html', label: 'Cliente', icon: '👤', minRole: 'customer' },
+    { href: 'agent.html', label: 'Empleados', icon: '📋', minRole: 'agent' },
+    { href: 'admin.html', label: 'Admin', icon: '⚙️', minRole: 'admin' },
+    { href: 'contact.html', label: 'Contacto', icon: '💬', minRole: 'customer' }
+  ];
+
+  const currentPage = window.location.pathname.split('/').pop();
+  const currentLevel = getRoleLevel(user.role);
+  const visibleItems = items.filter((item) => currentLevel >= getRoleLevel(item.minRole));
+
+  sidebar.innerHTML = `
+    <div class="sidebar-head">
+      <span class="sidebar-logo">🛡️</span>
+      <div>
+        <strong>RentCar</strong>
+        <p>Portal ${user.role}</p>
+      </div>
+    </div>
+    <nav class="sidebar-menu">
+      ${visibleItems
+        .map(
+          (item) => `
+            <a href="${item.href}" class="${currentPage === item.href ? 'active' : ''}">
+              <span class="icon">${item.icon}</span>
+              <span>${item.label}</span>
+            </a>`
+        )
+        .join('')}
+    </nav>
+    <div class="sidebar-user">
+      <small>Conectado como</small>
+      <strong>${user.name}</strong>
+      <p>${user.email}</p>
+      <button class="btn-ghost" id="sidebarLogoutBtn">Salir</button>
+    </div>
+  `;
+
+  const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+  if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', logout);
+}
+
 function handleRegister() {
   const form = document.getElementById('registerForm');
   if (!form) return;
@@ -684,7 +741,12 @@ function initPage() {
   const user = getCurrentUser();
 
   if (page === 'login' && user) window.location.href = getHomeByRole(user.role);
-  if (page === 'dashboard') requireAuth();
+  if (page === 'dashboard') {
+    if (!requireAuth()) return;
+  }
+  if (page === 'customer') {
+    if (!requireAuth() || !requireRole(['customer', 'agent', 'admin'])) return;
+  }
   if (page === 'admin') {
     if (!requireAuth() || !requireRole(['admin'])) return;
   }
@@ -704,6 +766,7 @@ function initPage() {
   renderAdminPanel();
   handleAdminCreateUser();
   renderAgentPanel();
+  renderSidebar();
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
