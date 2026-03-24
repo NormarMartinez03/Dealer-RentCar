@@ -310,6 +310,114 @@ th {
 .empty-state { color: var(--text-muted); padding: 8px; }
 .success-icon { font-size: 58px; color: #22c55e; display: block; margin-bottom: 10px; }
 .success-msg { margin-top: 10px; color: #86efac; }
+.quick-action { margin-top: 14px; width: auto; }
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  min-height: 100vh;
+}
+
+.app-main {
+  padding-bottom: 18px;
+}
+
+.sidebar-panel {
+  background: rgba(8, 16, 35, 0.9);
+  border-right: 1px solid var(--border);
+  padding: 18px 14px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.sidebar-head p {
+  margin: 3px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.sidebar-logo {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(243, 156, 18, 0.18);
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.sidebar-menu a:hover {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sidebar-menu a.active {
+  border-color: rgba(243, 156, 18, 0.5);
+  background: rgba(243, 156, 18, 0.17);
+  color: #ffd69f;
+}
+
+.sidebar-menu .icon {
+  width: 22px;
+  text-align: center;
+}
+
+.sidebar-user {
+  margin-top: auto;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-user small,
+.sidebar-user p {
+  color: var(--text-muted);
+}
+
+.sidebar-user strong {
+  display: block;
+  margin-top: 2px;
+}
+
+.sidebar-user p {
+  margin: 3px 0 10px;
+  font-size: 0.8rem;
+  word-break: break-word;
+}
 
 @media (max-width: 720px) {
   .navbar {
@@ -319,6 +427,13 @@ th {
 
   .nav-user { width: 100%; justify-content: center; }
   .stats-box { grid-template-columns: 1fr; gap: 12px; }
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebar-panel {
+    position: static;
+    height: auto;
+  }
 }
 
 

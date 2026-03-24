@@ -7,39 +7,34 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="agent">
-  <nav class="navbar">
-    <div class="nav-logo"><h2>RentCar<span>Express</span></h2></div>
-    <ul class="nav-links">
-      <li><a href="agent.html" class="active">Empleados</a></li>
-      <li><a href="catalog.html">Catálogo</a></li>
-      <li><a href="contact.html">Contacto</a></li>
-    </ul>
-    <div class="nav-user"><span id="navUserName"></span><div id="navAuthLinks"></div></div>
-  </nav>
+  <div class="app-layout">
+    <aside id="appSidebar" class="sidebar-panel"></aside>
+    <main class="app-main">
+      <header class="page-header">
+        <h1>Seguimiento de alquileres</h1>
+        <p>Control diario de vehículos programados, en curso y finalizados.</p>
+      </header>
 
-  <header class="page-header">
-    <h1>Seguimiento de alquileres</h1>
-    <p>Control diario de vehículos programados, en curso y finalizados.</p>
-  </header>
+      <section class="stats-box" id="agentStats"></section>
 
-  <section class="stats-box" id="agentStats"></section>
-
-  <section class="glass-box table-wrap wide-box">
-    <h3>Alquileres activos y programados</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Reserva</th>
-          <th>Cliente</th>
-          <th>Vehículo</th>
-          <th>Inicio</th>
-          <th>Fin</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody id="agentBookingsTable"></tbody>
-    </table>
-  </section>
+      <section class="glass-box table-wrap wide-box">
+        <h3>Alquileres activos y programados</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Reserva</th>
+              <th>Cliente</th>
+              <th>Vehículo</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="agentBookingsTable"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>

@@ -7,65 +7,60 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="admin">
-  <nav class="navbar">
-    <div class="nav-logo"><h2>RentCar<span>Express</span></h2></div>
-    <ul class="nav-links">
-      <li><a href="admin.html" class="active">Admin</a></li>
-      <li><a href="catalog.html">Catálogo</a></li>
-      <li><a href="agent.html">Empleados</a></li>
-    </ul>
-    <div class="nav-user"><span id="navUserName"></span><div id="navAuthLinks"></div></div>
-  </nav>
+  <div class="app-layout">
+    <aside id="appSidebar" class="sidebar-panel"></aside>
+    <main class="app-main">
+      <header class="page-header">
+        <h1>Panel administrativo</h1>
+        <p>Monitorea usuarios, reservas y solicitudes de contacto.</p>
+      </header>
 
-  <header class="page-header">
-    <h1>Panel administrativo</h1>
-    <p>Monitorea usuarios, reservas y solicitudes de contacto.</p>
-  </header>
+      <section class="stats-box" id="adminStats"></section>
 
-  <section class="stats-box" id="adminStats"></section>
+      <section class="glass-box wide-box">
+        <h3>Crear usuario con rol</h3>
+        <form id="adminCreateUserForm" class="stack-md">
+          <label class="input-group no-icon"><input type="text" id="adminUserName" placeholder="Nombre completo" required></label>
+          <label class="input-group no-icon"><input type="email" id="adminUserEmail" placeholder="Correo" required></label>
+          <label class="input-group no-icon"><input type="text" id="adminUserPhone" placeholder="Teléfono" required></label>
+          <label class="input-group no-icon"><input type="password" id="adminUserPassword" placeholder="Contraseña temporal" minlength="8" required></label>
+          <label class="input-group no-icon">
+            <select id="adminUserRole" required>
+              <option value="customer">Cliente</option>
+              <option value="agent">Empleado</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </label>
+          <button class="btn-primary" type="submit">Crear usuario</button>
+          <p class="muted hidden" id="adminCreateUserMessage"></p>
+        </form>
+      </section>
 
-  <section class="glass-box wide-box">
-    <h3>Crear usuario con rol</h3>
-    <form id="adminCreateUserForm" class="stack-md">
-      <label class="input-group no-icon"><input type="text" id="adminUserName" placeholder="Nombre completo" required></label>
-      <label class="input-group no-icon"><input type="email" id="adminUserEmail" placeholder="Correo" required></label>
-      <label class="input-group no-icon"><input type="text" id="adminUserPhone" placeholder="Teléfono" required></label>
-      <label class="input-group no-icon"><input type="password" id="adminUserPassword" placeholder="Contraseña temporal" minlength="8" required></label>
-      <label class="input-group no-icon">
-        <select id="adminUserRole" required>
-          <option value="customer">Cliente</option>
-          <option value="agent">Empleado</option>
-          <option value="admin">Administrador</option>
-        </select>
-      </label>
-      <button class="btn-primary" type="submit">Crear usuario</button>
-      <p class="muted hidden" id="adminCreateUserMessage"></p>
-    </form>
-  </section>
+      <section class="glass-box table-wrap wide-box">
+        <h3>Usuarios</h3>
+        <table>
+          <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </section>
 
-  <section class="glass-box table-wrap wide-box">
-    <h3>Usuarios</h3>
-    <table>
-      <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th></tr></thead>
-      <tbody id="usersTable"></tbody>
-    </table>
-  </section>
+      <section class="glass-box table-wrap wide-box">
+        <h3>Reservas</h3>
+        <table>
+          <thead><tr><th>ID</th><th>Cliente</th><th>Vehículo</th><th>Fechas</th><th>Total</th></tr></thead>
+          <tbody id="bookingsTable"></tbody>
+        </table>
+      </section>
 
-  <section class="glass-box table-wrap wide-box">
-    <h3>Reservas</h3>
-    <table>
-      <thead><tr><th>ID</th><th>Cliente</th><th>Vehículo</th><th>Fechas</th><th>Total</th></tr></thead>
-      <tbody id="bookingsTable"></tbody>
-    </table>
-  </section>
-
-  <section class="glass-box table-wrap wide-box">
-    <h3>Consultas</h3>
-    <table>
-      <thead><tr><th>Nombre</th><th>Email</th><th>Mensaje</th></tr></thead>
-      <tbody id="inquiriesTable"></tbody>
-    </table>
-  </section>
+      <section class="glass-box table-wrap wide-box">
+        <h3>Consultas</h3>
+        <table>
+          <thead><tr><th>Nombre</th><th>Email</th><th>Mensaje</th></tr></thead>
+          <tbody id="inquiriesTable"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
