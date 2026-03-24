@@ -1,5 +1,6 @@
 const DB_KEY = 'rentcar_db';
 const CURRENT_USER_KEY = 'rentcar_current_user';
+const ITBIS_RATE = 0.18;
 
 const seedData = {
   users: [
@@ -113,7 +114,8 @@ const seedData = {
     },
   ],
   bookings: [],
-  inquiries: []
+  inquiries: [],
+  outbox: []
 };
 
 function getDB() {
@@ -123,7 +125,12 @@ function getDB() {
     return structuredClone(seedData);
   }
   const parsedDB = JSON.parse(db);
-  if (!Array.isArray(parsedDB.users) || !Array.isArray(parsedDB.cars) || !Array.isArray(parsedDB.bookings)) {
+  if (
+    !Array.isArray(parsedDB.users) ||
+    !Array.isArray(parsedDB.cars) ||
+    !Array.isArray(parsedDB.bookings) ||
+    !Array.isArray(parsedDB.outbox)
+  ) {
     localStorage.setItem(DB_KEY, JSON.stringify(seedData));
     return structuredClone(seedData);
   }
@@ -180,6 +187,67 @@ function formatCurrency(value) {
     currency: 'USD',
     minimumFractionDigits: 0
   }).format(value);
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('es-DO');
+}
+
+function generateNCF() {
+  const random = String(Math.floor(Math.random() * 1_000_000_000)).padStart(9, '0');
+  return `B01${random}`;
+}
+
+function getBookingDays(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+  return Math.max(1, diffDays);
+}
+
+function calculateInvoice(carPricePerDay, startDate, endDate) {
+  const days = getBookingDays(startDate, endDate);
+  const subtotal = Number((days * carPricePerDay).toFixed(2));
+  const itbis = Number((subtotal * ITBIS_RATE).toFixed(2));
+  const total = Number((subtotal + itbis).toFixed(2));
+  return { days, subtotal, itbis, total };
+}
+
+function datesOverlap(startA, endA, startB, endB) {
+  const aStart = new Date(startA);
+  const aEnd = new Date(endA);
+  const bStart = new Date(startB);
+  const bEnd = new Date(endB);
+  return aStart < bEnd && bStart < aEnd;
+}
+
+function isCarAvailable(db, carId, startDate, endDate) {
+  if (!startDate || !endDate) return true;
+  return !db.bookings.some(
+    (booking) => booking.carId === carId && datesOverlap(startDate, endDate, booking.startDate, booking.endDate)
+  );
+}
+
+function queueBookingEmail(db, payload) {
+  db.outbox.push({
+    id: Date.now(),
+    to: payload.to,
+    subject: `Factura de reserva ${payload.ncf}`,
+    message: [
+      `Hola ${payload.customerName},`,
+      `Tu reserva para ${payload.carName} fue confirmada.`,
+      `Periodo: ${formatDate(payload.startDate)} - ${formatDate(payload.endDate)}.`,
+      `Días: ${payload.days}.`,
+      `Subtotal: ${formatCurrency(payload.subtotal)}.`,
+      `ITBIS (18%): ${formatCurrency(payload.itbis)}.`,
+      `Total: ${formatCurrency(payload.total)}.`,
+      `NCF: ${payload.ncf}.`
+    ].join('\n'),
+    createdAt: new Date().toISOString()
+  });
 }
 
 function updateNavUser() {
@@ -268,6 +336,7 @@ function renderAdminPanel() {
     <div><strong>${db.users.length}</strong><span>Usuarios</span></div>
     <div><strong>${db.cars.length}</strong><span>Vehículos</span></div>
     <div><strong>${db.bookings.length}</strong><span>Reservas</span></div>
+    <div><strong>${db.outbox.length}</strong><span>Correos</span></div>
   `;
 
   usersTable.innerHTML = db.users
@@ -296,6 +365,35 @@ function renderAdminPanel() {
         .map((inq) => `<tr><td>${inq.name}</td><td>${inq.email}</td><td>${inq.message}</td></tr>`)
         .join('')
     : '<tr><td colspan="3" class="empty-state">No hay consultas por responder.</td></tr>';
+}
+
+function handleAdminCreateUser() {
+  const form = document.getElementById('adminCreateUserForm');
+  if (!form) return;
+  const messageBox = document.getElementById('adminCreateUserMessage');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const db = getDB();
+    const name = document.getElementById('adminUserName').value.trim();
+    const email = document.getElementById('adminUserEmail').value.trim().toLowerCase();
+    const phone = document.getElementById('adminUserPhone').value.trim();
+    const password = document.getElementById('adminUserPassword').value;
+    const role = document.getElementById('adminUserRole').value;
+
+    if (db.users.some((user) => user.email === email)) {
+      messageBox.textContent = 'Ese correo ya existe.';
+      messageBox.classList.remove('hidden');
+      return;
+    }
+
+    db.users.push({ id: Date.now(), name, email, phone, password, role });
+    saveDB(db);
+    form.reset();
+    messageBox.textContent = `Usuario creado con rol: ${role}.`;
+    messageBox.classList.remove('hidden');
+    renderAdminPanel();
+  });
 }
 
 function getRentalStatus(booking) {
@@ -376,12 +474,17 @@ function renderCatalog() {
   const category = document.getElementById('filterCategory')?.value || 'todos';
   const location = document.getElementById('filterLocation')?.value || 'todos';
   const maxPrice = Number(document.getElementById('filterPrice')?.value || 9999);
+  const filterStartDate = document.getElementById('filterStartDate')?.value || '';
+  const filterEndDate = document.getElementById('filterEndDate')?.value || '';
+  const onlyAvailable = document.getElementById('filterOnlyAvailable')?.checked || false;
 
   const cars = db.cars.filter((car) => {
     const byCategory = category === 'todos' || car.category === category;
     const byLocation = location === 'todos' || car.location === location;
     const byPrice = car.pricePerDay <= maxPrice;
-    return byCategory && byLocation && byPrice;
+    const availableInRange = isCarAvailable(db, car.id, filterStartDate, filterEndDate);
+    const byAvailability = !onlyAvailable || availableInRange;
+    return byCategory && byLocation && byPrice && byAvailability;
   });
 
   if (!cars.length) {
@@ -397,7 +500,7 @@ function renderCatalog() {
         <div class="car-info">
           <div class="car-top-line">
             <span class="badge">${car.category}</span>
-            <span>⭐ ${car.rating}</span>
+            <span>${isCarAvailable(db, car.id, filterStartDate, filterEndDate) ? '✅ Disponible' : '⛔ Reservado'}</span>
           </div>
           <h3>${car.name} (${car.year})</h3>
           <p class="muted">${car.location} • ${car.transmission} • ${car.seats} pasajeros</p>
@@ -410,7 +513,7 @@ function renderCatalog() {
 }
 
 function setupFilters() {
-  ['filterCategory', 'filterLocation', 'filterPrice'].forEach((id) => {
+  ['filterCategory', 'filterLocation', 'filterPrice', 'filterStartDate', 'filterEndDate', 'filterOnlyAvailable'].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', renderCatalog);
   });
@@ -475,21 +578,28 @@ function handleCheckout() {
 
   document.getElementById('checkoutCar').textContent = `${car.name} ${car.year}`;
   document.getElementById('checkoutPrice').textContent = formatCurrency(car.pricePerDay);
+  const billingEmail = document.getElementById('billingEmail');
+  const currentUser = getCurrentUser();
+  if (billingEmail && currentUser?.email) billingEmail.value = currentUser.email;
 
   const startDate = document.getElementById('startDate');
   const endDate = document.getElementById('endDate');
   const totalText = document.getElementById('totalPrice');
-
-  const calcTotal = () => {
-    if (!startDate.value || !endDate.value) return car.pricePerDay;
-    const start = new Date(startDate.value);
-    const end = new Date(endDate.value);
-    const diffDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-    return diffDays * car.pricePerDay;
-  };
+  const daysText = document.getElementById('summaryDays');
+  const subtotalText = document.getElementById('summarySubtotal');
+  const itbisText = document.getElementById('summaryItbis');
+  const ncfText = document.getElementById('summaryNcf');
+  let currentNcf = generateNCF();
 
   const updateTotal = () => {
-    totalText.textContent = formatCurrency(calcTotal());
+    const fallback = { days: 1, subtotal: car.pricePerDay, itbis: Number((car.pricePerDay * ITBIS_RATE).toFixed(2)), total: 0 };
+    fallback.total = Number((fallback.subtotal + fallback.itbis).toFixed(2));
+    const summary = startDate.value && endDate.value ? calculateInvoice(car.pricePerDay, startDate.value, endDate.value) : fallback;
+    totalText.textContent = formatCurrency(summary.total);
+    daysText.textContent = summary.days;
+    subtotalText.textContent = formatCurrency(summary.subtotal);
+    itbisText.textContent = formatCurrency(summary.itbis);
+    ncfText.textContent = currentNcf;
   };
 
   startDate.addEventListener('change', updateTotal);
@@ -503,10 +613,15 @@ function handleCheckout() {
       alert('Selecciona fechas válidas.');
       return;
     }
+    if (!isCarAvailable(getDB(), car.id, startDate.value, endDate.value)) {
+      alert('Este vehículo no está disponible en ese rango de fechas.');
+      return;
+    }
 
     const user = getCurrentUser();
     const db = getDB();
-    const total = calcTotal();
+    const summary = calculateInvoice(car.pricePerDay, startDate.value, endDate.value);
+    const ncf = currentNcf;
 
     db.bookings.push({
       id: Date.now(),
@@ -514,13 +629,31 @@ function handleCheckout() {
       carId: car.id,
       startDate: startDate.value,
       endDate: endDate.value,
-      total,
+      days: summary.days,
+      subtotal: summary.subtotal,
+      itbis: summary.itbis,
+      ncf,
+      total: summary.total,
       status: 'confirmada'
+    });
+    queueBookingEmail(db, {
+      to: billingEmail.value.trim(),
+      customerName: user.name,
+      carName: car.name,
+      startDate: startDate.value,
+      endDate: endDate.value,
+      days: summary.days,
+      subtotal: summary.subtotal,
+      itbis: summary.itbis,
+      total: summary.total,
+      ncf
     });
 
     saveDB(db);
     document.getElementById('paymentBox').classList.add('hidden');
     document.getElementById('successPaymentBox').classList.remove('hidden');
+    document.getElementById('successPaymentMessage').textContent = `Factura enviada a ${billingEmail.value.trim()} con NCF ${ncf}.`;
+    currentNcf = generateNCF();
   });
 }
 
@@ -569,6 +702,7 @@ function initPage() {
   handleCheckout();
   handleContact();
   renderAdminPanel();
+  handleAdminCreateUser();
   renderAgentPanel();
 }
 

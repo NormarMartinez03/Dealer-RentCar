@@ -70,8 +70,18 @@ h1 span, h2 span { color: var(--primary); }
 }
 
 .input-group.no-icon input,
-.input-group.no-icon textarea {
+.input-group.no-icon textarea,
+.input-group.no-icon select {
   padding-left: 12px;
+}
+
+.input-group select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #fff;
+  padding: 12px;
 }
 
 .input-group textarea {
@@ -158,7 +168,7 @@ h1 span, h2 span { color: var(--primary); }
   border: 1px solid var(--border);
   border-radius: 12px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   padding: 14px;
   text-align: center;
 }
@@ -174,6 +184,15 @@ h1 span, h2 span { color: var(--primary); }
 }
 
 .filters select { padding-left: 12px; }
+.compact-filter input { padding-left: 12px; }
+.toggle-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+.toggle-inline input { accent-color: var(--primary); }
 
 .car-grid {
   padding: 18px 6% 40px;
@@ -224,6 +243,16 @@ h1 span, h2 span { color: var(--primary); }
 }
 
 .checkout-box { width: min(95vw, 520px); }
+.invoice-breakdown {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.invoice-breakdown p {
+  margin: 4px 0;
+  color: var(--text-muted);
+}
 .contact-wrap { padding: 30px 6%; display: grid; place-items: center; }
 .wide-box { width: min(95vw, 1100px); margin: 0 auto 18px; }
 
