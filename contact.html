@@ -7,48 +7,39 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="contact" class="contact-page">
-  <nav class="navbar">
-    <div class="nav-logo"><h2>RentCar<span>Express</span></h2></div>
-    <ul class="nav-links">
-      <li><a href="dashboard.html">Vehículos</a></li>
-      <li><a href="contact.html" class="active">Contacto</a></li>
-    </ul>
-    <div class="nav-user">
-      <span id="navUserName"></span>
-      <div id="navAuthLinks"></div>
-    </div>
-  </nav>
+  <div class="app-layout">
+    <aside id="appSidebar" class="sidebar-panel"></aside>
+    <main class="app-main contact-layout">
+      <section class="contact-panel">
+        <p class="pill">Soporte Premium</p>
+        <h1>Estamos para ayudarte</h1>
+        <p class="muted">Nuestro equipo te responde rápido para temas de reservas, cambios de vehículo, facturación y asistencia en ruta.</p>
+        <ul class="contact-benefits">
+          <li>✅ Atención 24/7 en toda Republica Dominicana.</li>
+          <li>✅ Respuesta en menos de 2 horas hábiles.</li>
+          <li>✅ Soporte para cambios y cancelaciones.</li>
+        </ul>
+      </section>
 
-  <main class="contact-layout">
-    <section class="contact-panel">
-      <p class="pill">Soporte Premium</p>
-      <h1>Estamos para ayudarte</h1>
-      <p class="muted">Nuestro equipo te responde rápido para temas de reservas, cambios de vehículo, facturación y asistencia en ruta.</p>
-      <ul class="contact-benefits">
-        <li>✅ Atención 24/7 en toda Republica Dominicana.</li>
-        <li>✅ Respuesta en menos de 2 horas hábiles.</li>
-        <li>✅ Soporte para cambios y cancelaciones.</li>
-      </ul>
-    </section>
-
-    <section class="glass-box contact-card">
-      <h2>Envíanos un mensaje</h2>
-      <p class="muted">Completa el formulario y te contactaremos pronto.</p>
-      <form id="contactForm" class="stack-md">
-        <label class="input-group no-icon">
-          <input type="text" id="contactName" placeholder="Nombre completo" required>
-        </label>
-        <label class="input-group no-icon">
-          <input type="email" id="contactEmail" placeholder="Correo electrónico" required>
-        </label>
-        <label class="input-group no-icon">
-          <textarea id="contactMessage" placeholder="¿Cómo podemos ayudarte?" required></textarea>
-        </label>
-        <button class="btn-primary" type="submit">Enviar mensaje</button>
-      </form>
-      <p id="contactSuccess" class="hidden success-msg">✅ ¡Mensaje enviado! Te responderemos pronto.</p>
-    </section>
-  </main>
+      <section class="glass-box contact-card">
+        <h2>Envíanos un mensaje</h2>
+        <p class="muted">Completa el formulario y te contactaremos pronto.</p>
+        <form id="contactForm" class="stack-md">
+          <label class="input-group no-icon">
+            <input type="text" id="contactName" placeholder="Nombre completo" required>
+          </label>
+          <label class="input-group no-icon">
+            <input type="email" id="contactEmail" placeholder="Correo electrónico" required>
+          </label>
+          <label class="input-group no-icon">
+            <textarea id="contactMessage" placeholder="¿Cómo podemos ayudarte?" required></textarea>
+          </label>
+          <button class="btn-primary" type="submit">Enviar mensaje</button>
+        </form>
+        <p id="contactSuccess" class="hidden success-msg">✅ ¡Mensaje enviado! Te responderemos pronto.</p>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>

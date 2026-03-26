@@ -1,5 +1,6 @@
 const DB_KEY = 'rentcar_db';
 const CURRENT_USER_KEY = 'rentcar_current_user';
+const SIDEBAR_COLLAPSED_KEY = 'rentcar_sidebar_collapsed';
 const ITBIS_RATE = 0.18;
 
 const seedData = {
@@ -280,27 +281,27 @@ function renderSidebar() {
   if (!sidebar) return;
 
   const user = getCurrentUser();
-  if (!user) return;
 
   const items = [
-    { href: 'dashboard.html', label: 'Dashboard', icon: '🏠', minRole: 'customer' },
-    { href: 'catalog.html', label: 'Catálogo', icon: '🚗', minRole: 'customer' },
-    { href: 'customer.html', label: 'Cliente', icon: '👤', minRole: 'customer' },
-    { href: 'agent.html', label: 'Empleados', icon: '📋', minRole: 'agent' },
-    { href: 'admin.html', label: 'Admin', icon: '⚙️', minRole: 'admin' },
-    { href: 'contact.html', label: 'Contacto', icon: '💬', minRole: 'customer' }
+    { href: 'dashboard.html', label: 'Dashboard', icon: '🏠', minRole: 'customer', guest: false },
+    { href: 'catalog.html', label: 'Catálogo', icon: '🚗', minRole: 'customer', guest: true },
+    { href: 'customer.html', label: 'Cliente', icon: '👤', minRole: 'customer', guest: false },
+    { href: 'agent.html', label: 'Empleados', icon: '📋', minRole: 'agent', guest: false },
+    { href: 'admin.html', label: 'Admin', icon: '⚙️', minRole: 'admin', guest: false },
+    { href: 'contact.html', label: 'Contacto', icon: '💬', minRole: 'customer', guest: true }
   ];
 
   const currentPage = window.location.pathname.split('/').pop();
-  const currentLevel = getRoleLevel(user.role);
-  const visibleItems = items.filter((item) => currentLevel >= getRoleLevel(item.minRole));
+  const currentLevel = user ? getRoleLevel(user.role) : 0;
+  const visibleItems = items.filter((item) => (user ? currentLevel >= getRoleLevel(item.minRole) : item.guest));
+  const isGuest = !user;
 
   sidebar.innerHTML = `
     <div class="sidebar-head">
       <span class="sidebar-logo">🛡️</span>
       <div>
         <strong>RentCar</strong>
-        <p>Portal ${user.role}</p>
+        <p>Portal ${isGuest ? 'invitado' : user.role}</p>
       </div>
     </div>
     <nav class="sidebar-menu">
@@ -315,15 +316,48 @@ function renderSidebar() {
         .join('')}
     </nav>
     <div class="sidebar-user">
-      <small>Conectado como</small>
-      <strong>${user.name}</strong>
-      <p>${user.email}</p>
-      <button class="btn-ghost" id="sidebarLogoutBtn">Salir</button>
+      ${
+        isGuest
+          ? `
+            <small>Bienvenido</small>
+            <strong>Invitado</strong>
+            <p>Inicia sesión para reservar y gestionar tus alquileres.</p>
+            <a href="index.html" class="btn-ghost">Ingresar</a>
+          `
+          : `
+            <small>Conectado como</small>
+            <strong>${user.name}</strong>
+            <p>${user.email}</p>
+            <button class="btn-ghost" id="sidebarLogoutBtn">Salir</button>
+          `
+      }
     </div>
   `;
 
-  const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
-  if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', logout);
+  if (!isGuest) {
+    const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
+    if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', logout);
+  }
+
+  let toggleBtn = document.getElementById('sidebarToggleBtn');
+  if (!toggleBtn) {
+    toggleBtn = document.createElement('button');
+    toggleBtn.id = 'sidebarToggleBtn';
+    toggleBtn.className = 'sidebar-toggle-btn';
+    toggleBtn.type = 'button';
+    toggleBtn.addEventListener('click', () => {
+      const collapsed = document.body.classList.toggle('sidebar-collapsed');
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
+      toggleBtn.textContent = collapsed ? '☰' : '⮜';
+      toggleBtn.setAttribute('aria-label', collapsed ? 'Mostrar menú' : 'Ocultar menú');
+    });
+    document.body.appendChild(toggleBtn);
+  }
+
+  const collapsedByPreference = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1';
+  document.body.classList.toggle('sidebar-collapsed', collapsedByPreference);
+  toggleBtn.textContent = collapsedByPreference ? '☰' : '⮜';
+  toggleBtn.setAttribute('aria-label', collapsedByPreference ? 'Mostrar menú' : 'Ocultar menú');
 }
 
 function handleRegister() {

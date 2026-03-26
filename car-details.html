@@ -7,18 +7,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="details">
-  <nav class="navbar">
-    <div class="nav-logo"><h2>RentCar<span>Express</span></h2></div>
-    <ul class="nav-links">
-      <li><a href="dashboard.html">Volver</a></li>
-    </ul>
-    <div class="nav-user">
-      <span id="navUserName"></span>
-      <div id="navAuthLinks"></div>
-    </div>
-  </nav>
-
-  <section class="detail-container" id="carDetailSection"></section>
+  <div class="app-layout">
+    <aside id="appSidebar" class="sidebar-panel"></aside>
+    <main class="app-main">
+      <section class="detail-container" id="carDetailSection"></section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>

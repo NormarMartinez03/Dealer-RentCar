@@ -7,46 +7,51 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
-<body class="auth-page" data-page="checkout">
-  <div id="checkoutWrapper" class="glass-box checkout-box">
-    <div id="paymentBox">
-      <h2>Confirmar reserva</h2>
-      <p class="muted" id="checkoutCar"></p>
-      <p>Tarifa por día: <strong id="checkoutPrice"></strong></p>
-      <form id="checkoutForm" class="stack-md">
-        <label class="input-group no-icon">
-          <input type="date" id="startDate" required>
-        </label>
-        <label class="input-group no-icon">
-          <input type="date" id="endDate" required>
-        </label>
-        <label class="input-group">
-          <span class="material-symbols-outlined">credit_card</span>
-          <input type="text" placeholder="Número de tarjeta" minlength="12" required>
-        </label>
-        <label class="input-group no-icon">
-          <input type="text" placeholder="Nombre en tarjeta" required>
-        </label>
-        <label class="input-group no-icon">
-          <input type="email" id="billingEmail" placeholder="Correo para factura" required>
-        </label>
-        <div class="invoice-breakdown">
-          <p>Días: <strong id="summaryDays">0</strong></p>
-          <p>Subtotal: <strong id="summarySubtotal"></strong></p>
-          <p>ITBIS (18%): <strong id="summaryItbis"></strong></p>
-          <p>NCF: <strong id="summaryNcf">-</strong></p>
+<body data-page="checkout">
+  <div class="app-layout">
+    <aside id="appSidebar" class="sidebar-panel"></aside>
+    <main class="app-main auth-page">
+      <div id="checkoutWrapper" class="glass-box checkout-box">
+        <div id="paymentBox">
+          <h2>Confirmar reserva</h2>
+          <p class="muted" id="checkoutCar"></p>
+          <p>Tarifa por día: <strong id="checkoutPrice"></strong></p>
+          <form id="checkoutForm" class="stack-md">
+            <label class="input-group no-icon">
+              <input type="date" id="startDate" required>
+            </label>
+            <label class="input-group no-icon">
+              <input type="date" id="endDate" required>
+            </label>
+            <label class="input-group">
+              <span class="material-symbols-outlined">credit_card</span>
+              <input type="text" placeholder="Número de tarjeta" minlength="12" required>
+            </label>
+            <label class="input-group no-icon">
+              <input type="text" placeholder="Nombre en tarjeta" required>
+            </label>
+            <label class="input-group no-icon">
+              <input type="email" id="billingEmail" placeholder="Correo para factura" required>
+            </label>
+            <div class="invoice-breakdown">
+              <p>Días: <strong id="summaryDays">0</strong></p>
+              <p>Subtotal: <strong id="summarySubtotal"></strong></p>
+              <p>ITBIS (18%): <strong id="summaryItbis"></strong></p>
+              <p>NCF: <strong id="summaryNcf">-</strong></p>
+            </div>
+            <p>Total a pagar: <strong id="totalPrice"></strong></p>
+            <button class="btn-primary" type="submit">Pagar y reservar</button>
+          </form>
         </div>
-        <p>Total a pagar: <strong id="totalPrice"></strong></p>
-        <button class="btn-primary" type="submit">Pagar y reservar</button>
-      </form>
-    </div>
 
-    <div class="hidden" id="successPaymentBox">
-      <span class="material-symbols-outlined success-icon">check_circle</span>
-      <h2>¡Reserva confirmada!</h2>
-      <p class="muted" id="successPaymentMessage">Tu pago fue procesado correctamente.</p>
-      <a href="dashboard.html" class="btn-primary">Volver al catálogo</a>
-    </div>
+        <div class="hidden" id="successPaymentBox">
+          <span class="material-symbols-outlined success-icon">check_circle</span>
+          <h2>¡Reserva confirmada!</h2>
+          <p class="muted" id="successPaymentMessage">Tu pago fue procesado correctamente.</p>
+          <a href="dashboard.html" class="btn-primary">Volver al catálogo</a>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script src="app.js"></script>
