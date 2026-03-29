@@ -19,6 +19,19 @@
 
       <section class="glass-box table-wrap wide-box">
         <h3>Alquileres activos y programados</h3>
+        <div class="table-toolbar toolbar-grid">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="agentSearch" placeholder="Buscar cliente o vehículo">
+          </label>
+          <label class="input-group no-icon">
+            <select id="agentStatusFilter">
+              <option value="todos">Todos los estados</option>
+              <option value="en curso">En curso</option>
+              <option value="programado">Programado</option>
+              <option value="finalizado">Finalizado</option>
+            </select>
+          </label>
+        </div>
         <table>
           <thead>
             <tr>

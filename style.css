@@ -282,6 +282,16 @@ h1 span, h2 span { color: var(--primary); }
   overflow-x: auto;
 }
 
+.table-toolbar {
+  margin: 0 0 12px;
+}
+
+.toolbar-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -747,6 +757,12 @@ body[data-theme='light'].forgot-page {
 @media (max-width: 900px) {
   .contact-layout,
   .forgot-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .toolbar-grid {
     grid-template-columns: 1fr;
   }
 }
