@@ -3,6 +3,8 @@
 :root {
   --primary: #f39c12;
   --primary-hover: #d6820f;
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 88px;
   --bg-main: radial-gradient(circle at top right, #1e293b, #020617 55%);
   --surface: rgba(15, 23, 42, 0.75);
   --surface-soft: rgba(255, 255, 255, 0.04);
@@ -331,9 +333,9 @@ th {
 
 .app-layout {
   display: grid;
-  grid-template-columns: 270px 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
   min-height: 100vh;
-  transition: grid-template-columns 0.2s ease;
+  transition: grid-template-columns 0.28s ease;
 }
 
 .app-main {
@@ -343,14 +345,30 @@ th {
 .sidebar-panel {
   background: var(--sidebar-bg);
   border-right: 1px solid rgba(148, 163, 184, 0.25);
-  padding: 18px 14px;
+  padding: 20px 14px 14px;
   position: sticky;
   top: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  transition: width 0.2s ease, padding 0.2s ease;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+  transition: width 0.28s ease, padding 0.28s ease, border-color 0.28s ease;
+}
+
+.sidebar-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-panel::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.sidebar-panel::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .sidebar-toggle-btn {
@@ -366,10 +384,16 @@ th {
   color: var(--text-main);
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(2, 6, 23, 0.55);
 }
 
 body.sidebar-collapsed .app-layout {
-  grid-template-columns: 82px 1fr;
+  grid-template-columns: var(--sidebar-width-collapsed) 1fr;
 }
 
 body.sidebar-collapsed .sidebar-panel {
@@ -386,6 +410,10 @@ body.sidebar-collapsed .sidebar-user {
 body.sidebar-collapsed .sidebar-head,
 body.sidebar-collapsed .sidebar-menu a {
   justify-content: center;
+}
+
+body.sidebar-collapsed .sidebar-head {
+  padding: 12px 8px;
 }
 
 body.sidebar-collapsed .sidebar-menu .icon {
@@ -419,6 +447,18 @@ body.sidebar-collapsed .sidebar-menu .icon {
   background: linear-gradient(135deg, rgba(243, 156, 18, 0.35), rgba(59, 130, 246, 0.2));
 }
 
+.sidebar-brand-toggle {
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.sidebar-brand-toggle:hover {
+  transform: translateY(-1px) scale(1.03);
+  filter: saturate(1.15);
+}
+
 .sidebar-menu {
   display: flex;
   flex-direction: column;
@@ -448,7 +488,14 @@ body.sidebar-collapsed .sidebar-menu .icon {
   text-decoration: none;
   border-radius: 10px;
   border: 1px solid transparent;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-menu a:focus-visible,
+.sidebar-brand-toggle:focus-visible,
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid rgba(243, 156, 18, 0.85);
+  outline-offset: 2px;
 }
 
 .sidebar-menu a:hover {
@@ -462,6 +509,40 @@ body.sidebar-collapsed .sidebar-menu .icon {
   background: linear-gradient(90deg, rgba(243, 156, 18, 0.2), rgba(243, 156, 18, 0.08));
   color: #ffd69f;
   box-shadow: inset 3px 0 0 rgba(243, 156, 18, 0.8);
+}
+
+body.sidebar-collapsed .sidebar-menu a {
+  position: relative;
+}
+
+body.sidebar-collapsed .sidebar-menu a::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #fff;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 15;
+}
+
+body[data-theme='light'].sidebar-collapsed .sidebar-menu a::after {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+}
+
+body.sidebar-collapsed .sidebar-menu a:hover::after,
+body.sidebar-collapsed .sidebar-menu a:focus-visible::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 .sidebar-menu .icon {
@@ -522,6 +603,12 @@ body.sidebar-collapsed .sidebar-menu .icon {
   color: var(--text-main);
   cursor: pointer;
   box-shadow: 0 8px 22px rgba(2, 6, 23, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(2, 6, 23, 0.45);
 }
 
 @media (max-width: 720px) {

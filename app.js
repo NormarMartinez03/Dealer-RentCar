@@ -343,7 +343,7 @@ function renderSidebar() {
 
   sidebar.innerHTML = `
     <div class="sidebar-head">
-      <span class="sidebar-logo">🛡️</span>
+      <button class="sidebar-logo sidebar-brand-toggle" id="sidebarBrandToggle" type="button" aria-label="Contraer o expandir menú lateral">🛡️</button>
       <div>
         <strong>RentCar</strong>
         <p>Portal ${isGuest ? 'invitado' : user.role}</p>
@@ -358,7 +358,7 @@ function renderSidebar() {
               ${menuItems
                 .map(
                   (item) => `
-                    <a href="${item.href}" class="${currentPage === item.href ? 'active' : ''}" title="${item.hint}" ${currentPage === item.href ? 'aria-current="page"' : ''}>
+                    <a href="${item.href}" class="${currentPage === item.href ? 'active' : ''}" title="${item.hint}" data-label="${item.label}" aria-label="${item.label}: ${item.hint}" ${currentPage === item.href ? 'aria-current="page"' : ''}>
                       <span class="icon">${item.icon}</span>
                       <span class="menu-text">
                         <span>${item.label}</span>
@@ -396,25 +396,19 @@ function renderSidebar() {
     if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', logout);
   }
 
-  let toggleBtn = document.getElementById('sidebarToggleBtn');
-  if (!toggleBtn) {
-    toggleBtn = document.createElement('button');
-    toggleBtn.id = 'sidebarToggleBtn';
-    toggleBtn.className = 'sidebar-toggle-btn';
-    toggleBtn.type = 'button';
-    toggleBtn.addEventListener('click', () => {
-      const collapsed = document.body.classList.toggle('sidebar-collapsed');
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
-      toggleBtn.textContent = collapsed ? '☰' : '⮜';
-      toggleBtn.setAttribute('aria-label', collapsed ? 'Mostrar menú' : 'Ocultar menú');
-    });
-    document.body.appendChild(toggleBtn);
-  }
-
   const collapsedByPreference = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1';
   document.body.classList.toggle('sidebar-collapsed', collapsedByPreference);
-  toggleBtn.textContent = collapsedByPreference ? '☰' : '⮜';
-  toggleBtn.setAttribute('aria-label', collapsedByPreference ? 'Mostrar menú' : 'Ocultar menú');
+  const brandToggleBtn = document.getElementById('sidebarBrandToggle');
+  if (brandToggleBtn) {
+    brandToggleBtn.setAttribute('aria-expanded', String(!collapsedByPreference));
+    brandToggleBtn.setAttribute('title', collapsedByPreference ? 'Mostrar menú' : 'Ocultar menú');
+    brandToggleBtn.addEventListener('click', () => {
+      const collapsed = document.body.classList.toggle('sidebar-collapsed');
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
+      brandToggleBtn.setAttribute('aria-expanded', String(!collapsed));
+      brandToggleBtn.setAttribute('title', collapsed ? 'Mostrar menú' : 'Ocultar menú');
+    });
+  }
 }
 
 function handleRegister() {
