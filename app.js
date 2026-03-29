@@ -1,6 +1,7 @@
 const DB_KEY = 'rentcar_db';
 const CURRENT_USER_KEY = 'rentcar_current_user';
 const SIDEBAR_COLLAPSED_KEY = 'rentcar_sidebar_collapsed';
+const THEME_KEY = 'rentcar_theme';
 const ITBIS_RATE = 0.18;
 
 const seedData = {
@@ -156,6 +157,45 @@ function setCurrentUser(user) {
 function logout() {
   localStorage.removeItem(CURRENT_USER_KEY);
   window.location.href = 'index.html';
+}
+
+function getPreferredTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+}
+
+function initThemeToggle() {
+  const theme = getPreferredTheme();
+  applyTheme(theme);
+
+  let themeToggleBtn = document.getElementById('themeToggleBtn');
+  if (!themeToggleBtn) {
+    themeToggleBtn = document.createElement('button');
+    themeToggleBtn.id = 'themeToggleBtn';
+    themeToggleBtn.className = 'theme-toggle-btn';
+    themeToggleBtn.type = 'button';
+    document.body.appendChild(themeToggleBtn);
+  }
+
+  const syncThemeButton = (currentTheme) => {
+    themeToggleBtn.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+    themeToggleBtn.setAttribute('aria-label', currentTheme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro');
+    themeToggleBtn.setAttribute('title', currentTheme === 'dark' ? 'Modo claro' : 'Modo oscuro');
+  };
+
+  syncThemeButton(theme);
+
+  themeToggleBtn.addEventListener('click', () => {
+    const nextTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme);
+    localStorage.setItem(THEME_KEY, nextTheme);
+    syncThemeButton(nextTheme);
+  });
 }
 
 function requireAuth(redirect = 'index.html') {
@@ -789,6 +829,7 @@ function handleContact() {
 
 function initPage() {
   getDB();
+  initThemeToggle();
   const page = document.body.dataset.page;
   updateNavUser();
   const user = getCurrentUser();
