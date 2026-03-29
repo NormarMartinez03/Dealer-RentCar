@@ -483,6 +483,9 @@ function renderAdminPanel() {
   if (!stats || !usersTable || !bookingsTable || !inquiriesTable) return;
 
   const db = getDB();
+  const userSearch = document.getElementById('adminUserSearch')?.value.trim().toLowerCase() || '';
+  const bookingSearch = document.getElementById('adminBookingSearch')?.value.trim().toLowerCase() || '';
+  const inquirySearch = document.getElementById('adminInquirySearch')?.value.trim().toLowerCase() || '';
 
   stats.innerHTML = `
     <div><strong>${db.users.length}</strong><span>Usuarios</span></div>
@@ -491,32 +494,55 @@ function renderAdminPanel() {
     <div><strong>${db.outbox.length}</strong><span>Correos</span></div>
   `;
 
-  usersTable.innerHTML = db.users
-    .map((user) => `<tr><td>${user.name}</td><td>${user.email}</td><td><span class="status-chip">${user.role}</span></td></tr>`)
-    .join('');
+  const filteredUsers = db.users.filter((user) => {
+    const haystack = `${user.name} ${user.email}`.toLowerCase();
+    return !userSearch || haystack.includes(userSearch);
+  });
+  usersTable.innerHTML = filteredUsers.length
+    ? filteredUsers
+        .map((user) => `<tr><td>${user.name}</td><td>${user.email}</td><td><span class="status-chip">${user.role}</span></td></tr>`)
+        .join('')
+    : '<tr><td colspan="3" class="empty-state">No hay usuarios con ese criterio.</td></tr>';
 
-  bookingsTable.innerHTML = db.bookings.length
-    ? db.bookings
-        .map((booking) => {
-          const customer = db.users.find((user) => user.id === booking.userId);
-          const car = db.cars.find((item) => item.id === booking.carId);
-          return `
+  const bookingRows = db.bookings
+    .map((booking) => {
+      const customer = db.users.find((user) => user.id === booking.userId);
+      const car = db.cars.find((item) => item.id === booking.carId);
+      return { booking, customerName: customer?.name || 'Cliente', carName: car?.name || 'Vehículo' };
+    })
+    .filter(({ customerName, carName }) => {
+      const haystack = `${customerName} ${carName}`.toLowerCase();
+      return !bookingSearch || haystack.includes(bookingSearch);
+    });
+
+  bookingsTable.innerHTML = bookingRows.length
+    ? bookingRows
+        .map(({ booking, customerName, carName }) => `
             <tr>
               <td>#${booking.id}</td>
-              <td>${customer?.name || 'Cliente'}</td>
-              <td>${car?.name || 'Vehículo'}</td>
+              <td>${customerName}</td>
+              <td>${carName}</td>
               <td>${booking.startDate} → ${booking.endDate}</td>
               <td>${formatCurrency(booking.total)}</td>
-            </tr>`;
-        })
+            </tr>`
+        )
         .join('')
-    : '<tr><td colspan="5" class="empty-state">Aún no hay reservas registradas.</td></tr>';
+    : '<tr><td colspan="5" class="empty-state">No hay reservas con ese criterio.</td></tr>';
 
-  inquiriesTable.innerHTML = db.inquiries.length
-    ? db.inquiries
-        .map((inq) => `<tr><td>${inq.name}</td><td>${inq.email}</td><td>${inq.message}</td></tr>`)
-        .join('')
-    : '<tr><td colspan="3" class="empty-state">No hay consultas por responder.</td></tr>';
+  const filteredInquiries = db.inquiries.filter((inq) => {
+    const haystack = `${inq.name} ${inq.email} ${inq.message}`.toLowerCase();
+    return !inquirySearch || haystack.includes(inquirySearch);
+  });
+  inquiriesTable.innerHTML = filteredInquiries.length
+    ? filteredInquiries.map((inq) => `<tr><td>${inq.name}</td><td>${inq.email}</td><td>${inq.message}</td></tr>`).join('')
+    : '<tr><td colspan="3" class="empty-state">No hay consultas con ese criterio.</td></tr>';
+}
+
+function initAdminFilters() {
+  ['adminUserSearch', 'adminBookingSearch', 'adminInquirySearch'].forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) element.addEventListener('input', renderAdminPanel);
+  });
 }
 
 function handleAdminCreateUser() {
@@ -565,6 +591,8 @@ function renderAgentPanel() {
   if (!body || !stats) return;
 
   const db = getDB();
+  const search = document.getElementById('agentSearch')?.value.trim().toLowerCase() || '';
+  const selectedStatus = document.getElementById('agentStatusFilter')?.value || 'todos';
   const tracked = db.bookings.map((booking) => {
     const status = getRentalStatus(booking);
     const customer = db.users.find((user) => user.id === booking.userId);
@@ -582,8 +610,14 @@ function renderAgentPanel() {
     <div><strong>${finished}</strong><span>Finalizados</span></div>
   `;
 
-  body.innerHTML = tracked.length
-    ? tracked
+  const filteredTracked = tracked.filter(({ status, customer, car }) => {
+    const byStatus = selectedStatus === 'todos' || status === selectedStatus;
+    const bySearch = !search || `${customer?.name || ''} ${car?.name || ''}`.toLowerCase().includes(search);
+    return byStatus && bySearch;
+  });
+
+  body.innerHTML = filteredTracked.length
+    ? filteredTracked
         .map(
           ({ booking, status, customer, car }) => `
           <tr>
@@ -596,7 +630,14 @@ function renderAgentPanel() {
           </tr>`
         )
         .join('')
-    : '<tr><td colspan="6" class="empty-state">No hay alquileres para seguimiento.</td></tr>';
+    : '<tr><td colspan="6" class="empty-state">No hay alquileres con ese filtro.</td></tr>';
+}
+
+function initAgentFilters() {
+  const search = document.getElementById('agentSearch');
+  const status = document.getElementById('agentStatusFilter');
+  if (search) search.addEventListener('input', renderAgentPanel);
+  if (status) status.addEventListener('change', renderAgentPanel);
 }
 
 function handleForgotPassword() {
@@ -859,8 +900,10 @@ function initPage() {
   renderCarDetails();
   handleCheckout();
   handleContact();
+  initAdminFilters();
   renderAdminPanel();
   handleAdminCreateUser();
+  initAgentFilters();
   renderAgentPanel();
   renderSidebar();
 }

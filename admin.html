@@ -38,6 +38,11 @@
 
       <section class="glass-box table-wrap wide-box">
         <h3>Usuarios</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminUserSearch" placeholder="Buscar por nombre o correo">
+          </label>
+        </div>
         <table>
           <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th></tr></thead>
           <tbody id="usersTable"></tbody>
@@ -46,6 +51,11 @@
 
       <section class="glass-box table-wrap wide-box">
         <h3>Reservas</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminBookingSearch" placeholder="Buscar por cliente o vehículo">
+          </label>
+        </div>
         <table>
           <thead><tr><th>ID</th><th>Cliente</th><th>Vehículo</th><th>Fechas</th><th>Total</th></tr></thead>
           <tbody id="bookingsTable"></tbody>
@@ -54,6 +64,11 @@
 
       <section class="glass-box table-wrap wide-box">
         <h3>Consultas</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminInquirySearch" placeholder="Buscar por nombre, correo o mensaje">
+          </label>
+        </div>
         <table>
           <thead><tr><th>Nombre</th><th>Email</th><th>Mensaje</th></tr></thead>
           <tbody id="inquiriesTable"></tbody>
