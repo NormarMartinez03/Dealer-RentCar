@@ -142,6 +142,23 @@ h1 span, h2 span { color: var(--primary); }
   border: 1px solid var(--border);
 }
 
+.action-row {
+  display: flex;
+  gap: 10px;
+}
+
+.action-row .btn-primary {
+  width: auto;
+}
+
+.btn-table {
+  width: auto;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  margin-right: 6px;
+}
+
 .footer-text { margin-top: 12px; font-size: 0.92rem; }
 .footer-text a { color: var(--primary); text-decoration: none; }
 .demo-hint { margin-top: 12px; font-size: 0.8rem; color: #93a5bd; }
@@ -280,6 +297,16 @@ h1 span, h2 span { color: var(--primary); }
   margin: 0 auto 18px;
   max-width: 100%;
   overflow-x: auto;
+}
+
+.table-toolbar {
+  margin: 0 0 12px;
+}
+
+.toolbar-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
 }
 
 table {
@@ -747,6 +774,12 @@ body[data-theme='light'].forgot-page {
 @media (max-width: 900px) {
   .contact-layout,
   .forgot-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .toolbar-grid {
     grid-template-columns: 1fr;
   }
 }

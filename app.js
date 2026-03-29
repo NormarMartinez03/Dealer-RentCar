@@ -137,6 +137,7 @@ function getDB() {
   if (!Array.isArray(parsedDB.outbox)) {
     parsedDB.outbox = [];
   }
+  parsedDB.cars = parsedDB.cars.map((car) => ({ ...car, active: car.active !== false }));
   saveDB(parsedDB);
   return parsedDB;
 }
@@ -480,43 +481,220 @@ function renderAdminPanel() {
   const usersTable = document.getElementById('usersTable');
   const bookingsTable = document.getElementById('bookingsTable');
   const inquiriesTable = document.getElementById('inquiriesTable');
-  if (!stats || !usersTable || !bookingsTable || !inquiriesTable) return;
+  const carsTable = document.getElementById('adminCarsTable');
+  if (!stats || !usersTable || !bookingsTable || !inquiriesTable || !carsTable) return;
 
   const db = getDB();
+  const userSearch = document.getElementById('adminUserSearch')?.value.trim().toLowerCase() || '';
+  const bookingSearch = document.getElementById('adminBookingSearch')?.value.trim().toLowerCase() || '';
+  const inquirySearch = document.getElementById('adminInquirySearch')?.value.trim().toLowerCase() || '';
 
   stats.innerHTML = `
     <div><strong>${db.users.length}</strong><span>Usuarios</span></div>
-    <div><strong>${db.cars.length}</strong><span>Vehículos</span></div>
+    <div><strong>${db.cars.filter((car) => car.active !== false).length}</strong><span>Vehículos activos</span></div>
     <div><strong>${db.bookings.length}</strong><span>Reservas</span></div>
     <div><strong>${db.outbox.length}</strong><span>Correos</span></div>
   `;
 
-  usersTable.innerHTML = db.users
-    .map((user) => `<tr><td>${user.name}</td><td>${user.email}</td><td><span class="status-chip">${user.role}</span></td></tr>`)
-    .join('');
+  const carSearch = document.getElementById('adminCarSearch')?.value.trim().toLowerCase() || '';
+  const filteredCars = db.cars.filter((car) => {
+    const haystack = `${car.name} ${car.brand} ${car.model}`.toLowerCase();
+    return !carSearch || haystack.includes(carSearch);
+  });
+  carsTable.innerHTML = filteredCars.length
+    ? filteredCars
+        .map(
+          (car) => `
+            <tr>
+              <td>${car.name}<br><small>${car.brand} ${car.model} (${car.year})</small></td>
+              <td><span class="status-chip">${car.category}</span></td>
+              <td>${formatCurrency(car.pricePerDay)}</td>
+              <td><span class="status-chip ${car.active !== false ? 'en-curso' : 'finalizado'}">${car.active !== false ? 'activo' : 'descatalogado'}</span></td>
+              <td>
+                <button class="btn-ghost btn-table" type="button" data-action="edit-car" data-car-id="${car.id}">Editar</button>
+                <button class="btn-ghost btn-table" type="button" data-action="toggle-car" data-car-id="${car.id}">${car.active !== false ? 'Descatalogar' : 'Reactivar'}</button>
+                <button class="btn-ghost btn-table" type="button" data-action="delete-car" data-car-id="${car.id}">Eliminar</button>
+              </td>
+            </tr>`
+        )
+        .join('')
+    : '<tr><td colspan="5" class="empty-state">No hay vehículos con ese criterio.</td></tr>';
 
-  bookingsTable.innerHTML = db.bookings.length
-    ? db.bookings
-        .map((booking) => {
-          const customer = db.users.find((user) => user.id === booking.userId);
-          const car = db.cars.find((item) => item.id === booking.carId);
-          return `
+  const filteredUsers = db.users.filter((user) => {
+    const haystack = `${user.name} ${user.email}`.toLowerCase();
+    return !userSearch || haystack.includes(userSearch);
+  });
+  usersTable.innerHTML = filteredUsers.length
+    ? filteredUsers
+        .map((user) => `<tr><td>${user.name}</td><td>${user.email}</td><td><span class="status-chip">${user.role}</span></td></tr>`)
+        .join('')
+    : '<tr><td colspan="3" class="empty-state">No hay usuarios con ese criterio.</td></tr>';
+
+  const bookingRows = db.bookings
+    .map((booking) => {
+      const customer = db.users.find((user) => user.id === booking.userId);
+      const car = db.cars.find((item) => item.id === booking.carId);
+      return { booking, customerName: customer?.name || 'Cliente', carName: car?.name || 'Vehículo' };
+    })
+    .filter(({ customerName, carName }) => {
+      const haystack = `${customerName} ${carName}`.toLowerCase();
+      return !bookingSearch || haystack.includes(bookingSearch);
+    });
+
+  bookingsTable.innerHTML = bookingRows.length
+    ? bookingRows
+        .map(({ booking, customerName, carName }) => `
             <tr>
               <td>#${booking.id}</td>
-              <td>${customer?.name || 'Cliente'}</td>
-              <td>${car?.name || 'Vehículo'}</td>
+              <td>${customerName}</td>
+              <td>${carName}</td>
               <td>${booking.startDate} → ${booking.endDate}</td>
               <td>${formatCurrency(booking.total)}</td>
-            </tr>`;
-        })
+            </tr>`
+        )
         .join('')
-    : '<tr><td colspan="5" class="empty-state">Aún no hay reservas registradas.</td></tr>';
+    : '<tr><td colspan="5" class="empty-state">No hay reservas con ese criterio.</td></tr>';
 
-  inquiriesTable.innerHTML = db.inquiries.length
-    ? db.inquiries
-        .map((inq) => `<tr><td>${inq.name}</td><td>${inq.email}</td><td>${inq.message}</td></tr>`)
-        .join('')
-    : '<tr><td colspan="3" class="empty-state">No hay consultas por responder.</td></tr>';
+  const filteredInquiries = db.inquiries.filter((inq) => {
+    const haystack = `${inq.name} ${inq.email} ${inq.message}`.toLowerCase();
+    return !inquirySearch || haystack.includes(inquirySearch);
+  });
+  inquiriesTable.innerHTML = filteredInquiries.length
+    ? filteredInquiries.map((inq) => `<tr><td>${inq.name}</td><td>${inq.email}</td><td>${inq.message}</td></tr>`).join('')
+    : '<tr><td colspan="3" class="empty-state">No hay consultas con ese criterio.</td></tr>';
+}
+
+function initAdminFilters() {
+  ['adminUserSearch', 'adminBookingSearch', 'adminInquirySearch', 'adminCarSearch'].forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) element.addEventListener('input', renderAdminPanel);
+  });
+}
+
+function resetAdminCarForm() {
+  const form = document.getElementById('adminCarForm');
+  if (!form) return;
+  form.reset();
+  const carIdInput = document.getElementById('adminCarId');
+  const submitBtn = document.getElementById('adminCarSubmitBtn');
+  if (carIdInput) carIdInput.value = '';
+  if (submitBtn) submitBtn.textContent = 'Guardar vehículo';
+}
+
+function isCarInService(db, carId) {
+  return db.bookings.some((booking) => booking.carId === carId && ['en curso', 'programado'].includes(getRentalStatus(booking)));
+}
+
+function handleAdminCarForm() {
+  const form = document.getElementById('adminCarForm');
+  if (!form) return;
+  const messageBox = document.getElementById('adminCarMessage');
+  const cancelBtn = document.getElementById('adminCarCancelBtn');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const db = getDB();
+    const carId = Number(document.getElementById('adminCarId').value);
+    const payload = {
+      name: document.getElementById('adminCarName').value.trim(),
+      brand: document.getElementById('adminCarBrand').value.trim(),
+      model: document.getElementById('adminCarModel').value.trim(),
+      year: Number(document.getElementById('adminCarYear').value),
+      category: document.getElementById('adminCarCategory').value,
+      location: document.getElementById('adminCarLocation').value.trim(),
+      pricePerDay: Number(document.getElementById('adminCarPrice').value),
+      image: document.getElementById('adminCarImage').value.trim() || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80'
+    };
+
+    if (carId) {
+      const car = db.cars.find((item) => item.id === carId);
+      if (!car) return;
+      Object.assign(car, payload);
+      messageBox.textContent = 'Vehículo actualizado correctamente.';
+    } else {
+      db.cars.push({
+        id: Date.now(),
+        transmission: 'Automática',
+        fuel: 'Gasolina',
+        seats: 5,
+        luggage: 2,
+        rating: 4.5,
+        features: ['Aire acondicionado', 'Bluetooth'],
+        description: 'Vehículo agregado desde panel administrativo.',
+        active: true,
+        ...payload
+      });
+      messageBox.textContent = 'Vehículo agregado correctamente.';
+    }
+
+    saveDB(db);
+    messageBox.classList.remove('hidden');
+    resetAdminCarForm();
+    renderAdminPanel();
+  });
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      resetAdminCarForm();
+      if (messageBox) messageBox.classList.add('hidden');
+    });
+  }
+}
+
+function handleAdminCarActions() {
+  const carsTable = document.getElementById('adminCarsTable');
+  if (!carsTable) return;
+
+  carsTable.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    const action = button.dataset.action;
+    const carId = Number(button.dataset.carId);
+    const db = getDB();
+    const car = db.cars.find((item) => item.id === carId);
+    if (!car) return;
+    const messageBox = document.getElementById('adminCarMessage');
+
+    if (action === 'edit-car') {
+      document.getElementById('adminCarId').value = car.id;
+      document.getElementById('adminCarName').value = car.name;
+      document.getElementById('adminCarBrand').value = car.brand;
+      document.getElementById('adminCarModel').value = car.model;
+      document.getElementById('adminCarYear').value = car.year;
+      document.getElementById('adminCarCategory').value = car.category;
+      document.getElementById('adminCarLocation').value = car.location;
+      document.getElementById('adminCarPrice').value = car.pricePerDay;
+      document.getElementById('adminCarImage').value = car.image || '';
+      document.getElementById('adminCarSubmitBtn').textContent = 'Actualizar vehículo';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (action === 'toggle-car') {
+      car.active = car.active === false;
+      saveDB(db);
+      messageBox.textContent = car.active ? 'Vehículo reactivado.' : 'Vehículo descatalogado.';
+      messageBox.classList.remove('hidden');
+      renderAdminPanel();
+      return;
+    }
+
+    if (action === 'delete-car') {
+      if (isCarInService(db, car.id)) {
+        car.active = false;
+        saveDB(db);
+        messageBox.textContent = 'El vehículo está en servicio. Se descatalogó en lugar de eliminarse.';
+        messageBox.classList.remove('hidden');
+        renderAdminPanel();
+        return;
+      }
+      db.cars = db.cars.filter((item) => item.id !== car.id);
+      saveDB(db);
+      messageBox.textContent = 'Vehículo eliminado correctamente.';
+      messageBox.classList.remove('hidden');
+      renderAdminPanel();
+    }
+  });
 }
 
 function handleAdminCreateUser() {
@@ -565,6 +743,8 @@ function renderAgentPanel() {
   if (!body || !stats) return;
 
   const db = getDB();
+  const search = document.getElementById('agentSearch')?.value.trim().toLowerCase() || '';
+  const selectedStatus = document.getElementById('agentStatusFilter')?.value || 'todos';
   const tracked = db.bookings.map((booking) => {
     const status = getRentalStatus(booking);
     const customer = db.users.find((user) => user.id === booking.userId);
@@ -582,8 +762,14 @@ function renderAgentPanel() {
     <div><strong>${finished}</strong><span>Finalizados</span></div>
   `;
 
-  body.innerHTML = tracked.length
-    ? tracked
+  const filteredTracked = tracked.filter(({ status, customer, car }) => {
+    const byStatus = selectedStatus === 'todos' || status === selectedStatus;
+    const bySearch = !search || `${customer?.name || ''} ${car?.name || ''}`.toLowerCase().includes(search);
+    return byStatus && bySearch;
+  });
+
+  body.innerHTML = filteredTracked.length
+    ? filteredTracked
         .map(
           ({ booking, status, customer, car }) => `
           <tr>
@@ -596,7 +782,14 @@ function renderAgentPanel() {
           </tr>`
         )
         .join('')
-    : '<tr><td colspan="6" class="empty-state">No hay alquileres para seguimiento.</td></tr>';
+    : '<tr><td colspan="6" class="empty-state">No hay alquileres con ese filtro.</td></tr>';
+}
+
+function initAgentFilters() {
+  const search = document.getElementById('agentSearch');
+  const status = document.getElementById('agentStatusFilter');
+  if (search) search.addEventListener('input', renderAgentPanel);
+  if (status) status.addEventListener('change', renderAgentPanel);
 }
 
 function handleForgotPassword() {
@@ -631,6 +824,7 @@ function renderCatalog() {
   const onlyAvailable = document.getElementById('filterOnlyAvailable')?.checked || false;
 
   const cars = db.cars.filter((car) => {
+    if (car.active === false) return false;
     const byCategory = category === 'todos' || car.category === category;
     const byLocation = location === 'todos' || car.location === location;
     const byPrice = car.pricePerDay <= maxPrice;
@@ -859,8 +1053,12 @@ function initPage() {
   renderCarDetails();
   handleCheckout();
   handleContact();
+  initAdminFilters();
   renderAdminPanel();
   handleAdminCreateUser();
+  handleAdminCarForm();
+  handleAdminCarActions();
+  initAgentFilters();
   renderAgentPanel();
   renderSidebar();
 }

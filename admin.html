@@ -18,6 +18,52 @@
       <section class="stats-box" id="adminStats"></section>
 
       <section class="glass-box wide-box">
+        <h3>Gestión de vehículos</h3>
+        <form id="adminCarForm" class="stack-md">
+          <input type="hidden" id="adminCarId">
+          <label class="input-group no-icon"><input type="text" id="adminCarName" placeholder="Nombre del vehículo" required></label>
+          <div class="toolbar-grid">
+            <label class="input-group no-icon"><input type="text" id="adminCarBrand" placeholder="Marca" required></label>
+            <label class="input-group no-icon"><input type="text" id="adminCarModel" placeholder="Modelo" required></label>
+          </div>
+          <div class="toolbar-grid">
+            <label class="input-group no-icon"><input type="number" id="adminCarYear" placeholder="Año" min="2000" required></label>
+            <label class="input-group no-icon"><input type="number" id="adminCarPrice" placeholder="Precio por día (USD)" min="1" required></label>
+          </div>
+          <div class="toolbar-grid">
+            <label class="input-group no-icon">
+              <select id="adminCarCategory" required>
+                <option value="economico">Económico</option>
+                <option value="suv">SUV</option>
+                <option value="lujo">Lujo</option>
+                <option value="deportivo">Deportivo</option>
+              </select>
+            </label>
+            <label class="input-group no-icon"><input type="text" id="adminCarLocation" placeholder="Ubicación" required></label>
+          </div>
+          <label class="input-group no-icon"><input type="url" id="adminCarImage" placeholder="URL de imagen"></label>
+          <div class="action-row">
+            <button class="btn-primary" type="submit" id="adminCarSubmitBtn">Guardar vehículo</button>
+            <button class="btn-ghost" type="button" id="adminCarCancelBtn">Cancelar edición</button>
+          </div>
+          <p class="muted hidden" id="adminCarMessage"></p>
+        </form>
+      </section>
+
+      <section class="glass-box table-wrap wide-box">
+        <h3>Inventario de vehículos</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminCarSearch" placeholder="Buscar por nombre, marca o modelo">
+          </label>
+        </div>
+        <table>
+          <thead><tr><th>Vehículo</th><th>Categoría</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="adminCarsTable"></tbody>
+        </table>
+      </section>
+
+      <section class="glass-box wide-box">
         <h3>Crear usuario con rol</h3>
         <form id="adminCreateUserForm" class="stack-md">
           <label class="input-group no-icon"><input type="text" id="adminUserName" placeholder="Nombre completo" required></label>
@@ -38,6 +84,11 @@
 
       <section class="glass-box table-wrap wide-box">
         <h3>Usuarios</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminUserSearch" placeholder="Buscar por nombre o correo">
+          </label>
+        </div>
         <table>
           <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th></tr></thead>
           <tbody id="usersTable"></tbody>
@@ -46,6 +97,11 @@
 
       <section class="glass-box table-wrap wide-box">
         <h3>Reservas</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminBookingSearch" placeholder="Buscar por cliente o vehículo">
+          </label>
+        </div>
         <table>
           <thead><tr><th>ID</th><th>Cliente</th><th>Vehículo</th><th>Fechas</th><th>Total</th></tr></thead>
           <tbody id="bookingsTable"></tbody>
@@ -54,6 +110,11 @@
 
       <section class="glass-box table-wrap wide-box">
         <h3>Consultas</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminInquirySearch" placeholder="Buscar por nombre, correo o mensaje">
+          </label>
+        </div>
         <table>
           <thead><tr><th>Nombre</th><th>Email</th><th>Mensaje</th></tr></thead>
           <tbody id="inquiriesTable"></tbody>
