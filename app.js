@@ -283,17 +283,22 @@ function renderSidebar() {
   const user = getCurrentUser();
 
   const items = [
-    { href: 'dashboard.html', label: 'Dashboard', icon: '🏠', minRole: 'customer', guest: false },
-    { href: 'catalog.html', label: 'Catálogo', icon: '🚗', minRole: 'customer', guest: true },
-    { href: 'customer.html', label: 'Cliente', icon: '👤', minRole: 'customer', guest: false },
-    { href: 'agent.html', label: 'Empleados', icon: '📋', minRole: 'agent', guest: false },
-    { href: 'admin.html', label: 'Admin', icon: '⚙️', minRole: 'admin', guest: false },
-    { href: 'contact.html', label: 'Contacto', icon: '💬', minRole: 'customer', guest: true }
+    { href: 'dashboard.html', label: 'Dashboard', icon: '🏠', hint: 'Resumen general', group: 'Principal', minRole: 'customer', guest: false },
+    { href: 'catalog.html', label: 'Catálogo', icon: '🚗', hint: 'Explorar vehículos', group: 'Principal', minRole: 'customer', guest: true },
+    { href: 'customer.html', label: 'Cliente', icon: '👤', hint: 'Tus reservas y perfil', group: 'Gestión', minRole: 'customer', guest: false },
+    { href: 'agent.html', label: 'Empleados', icon: '📋', hint: 'Operación diaria', group: 'Gestión', minRole: 'agent', guest: false },
+    { href: 'admin.html', label: 'Admin', icon: '⚙️', hint: 'Configuración global', group: 'Gestión', minRole: 'admin', guest: false },
+    { href: 'contact.html', label: 'Contacto', icon: '💬', hint: 'Ayuda y soporte', group: 'Soporte', minRole: 'customer', guest: true }
   ];
 
   const currentPage = window.location.pathname.split('/').pop();
   const currentLevel = user ? getRoleLevel(user.role) : 0;
   const visibleItems = items.filter((item) => (user ? currentLevel >= getRoleLevel(item.minRole) : item.guest));
+  const groupedItems = visibleItems.reduce((acc, item) => {
+    if (!acc[item.group]) acc[item.group] = [];
+    acc[item.group].push(item);
+    return acc;
+  }, {});
   const isGuest = !user;
 
   sidebar.innerHTML = `
@@ -305,13 +310,24 @@ function renderSidebar() {
       </div>
     </div>
     <nav class="sidebar-menu">
-      ${visibleItems
+      ${Object.entries(groupedItems)
         .map(
-          (item) => `
-            <a href="${item.href}" class="${currentPage === item.href ? 'active' : ''}">
-              <span class="icon">${item.icon}</span>
-              <span>${item.label}</span>
-            </a>`
+          ([group, menuItems]) => `
+            <div class="sidebar-section">
+              <small class="sidebar-section-title">${group}</small>
+              ${menuItems
+                .map(
+                  (item) => `
+                    <a href="${item.href}" class="${currentPage === item.href ? 'active' : ''}" title="${item.hint}" ${currentPage === item.href ? 'aria-current="page"' : ''}>
+                      <span class="icon">${item.icon}</span>
+                      <span class="menu-text">
+                        <span>${item.label}</span>
+                        <small>${item.hint}</small>
+                      </span>
+                    </a>`
+                )
+                .join('')}
+            </div>`
         )
         .join('')}
     </nav>
@@ -328,6 +344,7 @@ function renderSidebar() {
             <small>Conectado como</small>
             <strong>${user.name}</strong>
             <p>${user.email}</p>
+            <a class="btn-ghost sidebar-user-action" href="catalog.html">Nueva reserva</a>
             <button class="btn-ghost" id="sidebarLogoutBtn">Salir</button>
           `
       }
