@@ -358,7 +358,7 @@ function renderSidebar() {
               ${menuItems
                 .map(
                   (item) => `
-                    <a href="${item.href}" class="${currentPage === item.href ? 'active' : ''}" title="${item.hint}" ${currentPage === item.href ? 'aria-current="page"' : ''}>
+                    <a href="${item.href}" class="${currentPage === item.href ? 'active' : ''}" title="${item.hint}" data-label="${item.label}" aria-label="${item.label}: ${item.hint}" ${currentPage === item.href ? 'aria-current="page"' : ''}>
                       <span class="icon">${item.icon}</span>
                       <span class="menu-text">
                         <span>${item.label}</span>
@@ -407,6 +407,7 @@ function renderSidebar() {
       localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
       toggleBtn.textContent = collapsed ? '☰' : '⮜';
       toggleBtn.setAttribute('aria-label', collapsed ? 'Mostrar menú' : 'Ocultar menú');
+      toggleBtn.setAttribute('aria-expanded', String(!collapsed));
     });
     document.body.appendChild(toggleBtn);
   }
@@ -415,6 +416,7 @@ function renderSidebar() {
   document.body.classList.toggle('sidebar-collapsed', collapsedByPreference);
   toggleBtn.textContent = collapsedByPreference ? '☰' : '⮜';
   toggleBtn.setAttribute('aria-label', collapsedByPreference ? 'Mostrar menú' : 'Ocultar menú');
+  toggleBtn.setAttribute('aria-expanded', String(!collapsedByPreference));
 }
 
 function handleRegister() {
