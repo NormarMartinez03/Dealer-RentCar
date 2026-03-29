@@ -646,12 +646,34 @@ body.sidebar-collapsed .sidebar-menu a:focus-visible::after {
   body.sidebar-collapsed .app-layout {
     grid-template-columns: 1fr;
   }
+
+  body.sidebar-collapsed .sidebar-head div,
+  body.sidebar-collapsed .sidebar-menu a .menu-text,
+  body.sidebar-collapsed .sidebar-section-title,
+  body.sidebar-collapsed .sidebar-user {
+    display: initial;
+  }
+
+  body.sidebar-collapsed .sidebar-menu a {
+    justify-content: flex-start;
+  }
+
+  body.sidebar-collapsed .sidebar-menu a::after {
+    display: none;
+  }
+
   .sidebar-panel {
     position: static;
     height: auto;
   }
   .table-wrap {
     width: 100%;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  body.sidebar-collapsed .sidebar-menu a::after {
+    display: none;
   }
 }
 
