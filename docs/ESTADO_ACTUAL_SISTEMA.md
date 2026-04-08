@@ -68,3 +68,11 @@ Luego abrir:
 Credenciales demo:
 - Usuario: `admin@rentcar.com`
 - Contraseña: `Admin123*`
+
+- 
+## ✅ Validación de Funcionalidades Críticas (Aporte de Yessenia García)
+
+Se realizaron pruebas manuales para garantizar la estabilidad del prototipo:
+1. **Módulo de Catálogo:** Verificación de carga de datos.
+2. **Cálculo de Reserva:** Validación de fórmulas de precio.
+3. **Persistencia:** Sesión activa al recargar.
