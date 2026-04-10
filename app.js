@@ -259,6 +259,18 @@ function calculateInvoice(carPricePerDay, startDate, endDate) {
   return { days, subtotal, itbis, total };
 }
 
+function detectCardBrand(cardNumber) {
+  const normalized = cardNumber.replace(/\D/g, '');
+  if (/^4\d{12}(\d{3})?(\d{3})?$/.test(normalized)) return 'Visa';
+  if (/^5[1-5]\d{14}$/.test(normalized) || /^2(2[2-9]\d|[3-6]\d{2}|7([01]\d|20))\d{12}$/.test(normalized)) return 'Mastercard';
+  if (/^3[47]\d{13}$/.test(normalized)) return 'American Express';
+  if (/^3(?:0[0-5]|[68]\d)\d{11}$/.test(normalized)) return 'Diners Club';
+  if (/^6(?:011|5\d{2}|4[4-9]\d)\d{12,15}$/.test(normalized)) return 'Discover';
+  if (/^(?:2131|1800|35\d{3})\d{11}$/.test(normalized)) return 'JCB';
+  if (/^\d{12,19}$/.test(normalized)) return 'Otra';
+  return 'No detectada';
+}
+
 function datesOverlap(startA, endA, startB, endB) {
   const aStart = new Date(startA);
   const aEnd = new Date(endA);
@@ -523,11 +535,12 @@ function renderAdminPanel() {
               <td>${customerName}</td>
               <td>${carName}</td>
               <td>${booking.startDate} → ${booking.endDate}</td>
+              <td>${booking.cardIdentifier ? `${booking.cardBrand || 'Tarjeta'} • **** ${booking.cardIdentifier}` : '-'}</td>
               <td>${formatCurrency(booking.total)}</td>
             </tr>`
         )
         .join('')
-    : '<tr><td colspan="5" class="empty-state">No hay reservas con ese criterio.</td></tr>';
+    : '<tr><td colspan="6" class="empty-state">No hay reservas con ese criterio.</td></tr>';
 
   const filteredInquiries = db.inquiries.filter((inq) => {
     const haystack = `${inq.name} ${inq.email} ${inq.message}`.toLowerCase();
@@ -777,6 +790,9 @@ function handleCheckout() {
 
   const startDate = document.getElementById('startDate');
   const endDate = document.getElementById('endDate');
+  const cardNumber = document.getElementById('cardNumber');
+  const cardIdentifier = document.getElementById('cardIdentifier');
+  const cardBrandLabel = document.getElementById('cardBrandLabel');
   const totalText = document.getElementById('totalPrice');
   const daysText = document.getElementById('summaryDays');
   const subtotalText = document.getElementById('summarySubtotal');
@@ -797,6 +813,14 @@ function handleCheckout() {
 
   startDate.addEventListener('change', updateTotal);
   endDate.addEventListener('change', updateTotal);
+
+  const updateCardBrand = () => {
+    const brand = detectCardBrand(cardNumber.value || '');
+    cardBrandLabel.textContent = `Marca de tarjeta: ${brand}`;
+  };
+
+  cardNumber.addEventListener('input', updateCardBrand);
+  updateCardBrand();
   updateTotal();
 
   form.addEventListener('submit', (e) => {
@@ -810,11 +834,17 @@ function handleCheckout() {
       alert('Este vehículo no está disponible en ese rango de fechas.');
       return;
     }
+    const sanitizedCardIdentifier = cardIdentifier.value.replace(/\D/g, '');
+    if (!/^\d{4}$/.test(sanitizedCardIdentifier)) {
+      alert('Ingresa un identificador de tarjeta válido de 4 dígitos.');
+      return;
+    }
 
     const user = getCurrentUser();
     const db = getDB();
     const summary = calculateInvoice(car.pricePerDay, startDate.value, endDate.value);
     const ncf = currentNcf;
+    const cardBrand = detectCardBrand(cardNumber.value || '');
 
     db.bookings.push({
       id: Date.now(),
@@ -825,6 +855,8 @@ function handleCheckout() {
       days: summary.days,
       subtotal: summary.subtotal,
       itbis: summary.itbis,
+      cardBrand,
+      cardIdentifier: sanitizedCardIdentifier,
       ncf,
       total: summary.total,
       status: 'confirmada'

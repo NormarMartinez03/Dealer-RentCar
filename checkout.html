@@ -25,10 +25,14 @@
             </label>
             <label class="input-group">
               <span class="material-symbols-outlined">credit_card</span>
-              <input type="text" placeholder="Número de tarjeta" minlength="12" required>
+              <input type="text" id="cardNumber" placeholder="Número de tarjeta" minlength="12" required>
             </label>
+            <p class="muted" id="cardBrandLabel">Marca de tarjeta: no detectada</p>
             <label class="input-group no-icon">
               <input type="text" placeholder="Nombre en tarjeta" required>
+            </label>
+            <label class="input-group no-icon">
+              <input type="text" id="cardIdentifier" placeholder="Identificador de tarjeta (últimos 4)" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required>
             </label>
             <label class="input-group no-icon">
               <input type="email" id="billingEmail" placeholder="Correo para factura" required>
