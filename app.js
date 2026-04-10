@@ -523,11 +523,12 @@ function renderAdminPanel() {
               <td>${customerName}</td>
               <td>${carName}</td>
               <td>${booking.startDate} → ${booking.endDate}</td>
+              <td>${booking.cardIdentifier ? `**** ${booking.cardIdentifier}` : '-'}</td>
               <td>${formatCurrency(booking.total)}</td>
             </tr>`
         )
         .join('')
-    : '<tr><td colspan="5" class="empty-state">No hay reservas con ese criterio.</td></tr>';
+    : '<tr><td colspan="6" class="empty-state">No hay reservas con ese criterio.</td></tr>';
 
   const filteredInquiries = db.inquiries.filter((inq) => {
     const haystack = `${inq.name} ${inq.email} ${inq.message}`.toLowerCase();
@@ -777,6 +778,7 @@ function handleCheckout() {
 
   const startDate = document.getElementById('startDate');
   const endDate = document.getElementById('endDate');
+  const cardIdentifier = document.getElementById('cardIdentifier');
   const totalText = document.getElementById('totalPrice');
   const daysText = document.getElementById('summaryDays');
   const subtotalText = document.getElementById('summarySubtotal');
@@ -810,6 +812,11 @@ function handleCheckout() {
       alert('Este vehículo no está disponible en ese rango de fechas.');
       return;
     }
+    const sanitizedCardIdentifier = cardIdentifier.value.replace(/\D/g, '');
+    if (!/^\d{4}$/.test(sanitizedCardIdentifier)) {
+      alert('Ingresa un identificador de tarjeta válido de 4 dígitos.');
+      return;
+    }
 
     const user = getCurrentUser();
     const db = getDB();
@@ -825,6 +832,7 @@ function handleCheckout() {
       days: summary.days,
       subtotal: summary.subtotal,
       itbis: summary.itbis,
+      cardIdentifier: sanitizedCardIdentifier,
       ncf,
       total: summary.total,
       status: 'confirmada'
