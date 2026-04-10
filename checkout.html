@@ -31,6 +31,9 @@
               <input type="text" placeholder="Nombre en tarjeta" required>
             </label>
             <label class="input-group no-icon">
+              <input type="text" id="cardIdentifier" placeholder="Identificador de tarjeta (últimos 4)" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required>
+            </label>
+            <label class="input-group no-icon">
               <input type="email" id="billingEmail" placeholder="Correo para factura" required>
             </label>
             <div class="invoice-breakdown">
