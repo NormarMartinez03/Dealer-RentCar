@@ -47,3 +47,4 @@ Para acceder al panel administrativo del sistema se pueden utilizar las siguient
 ## 📄 Documentación
 - Estado actual del sistema: `docs/ESTADO_ACTUAL_SISTEMA.md`
 - Script SQL base: `backend/schema.sql`
+- Prototipo completo de la aplicación: `docs/PROTOTIPO_APLICACION_COMPLETA.md`
