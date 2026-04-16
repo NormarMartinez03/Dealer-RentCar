@@ -2,6 +2,7 @@ const DB_KEY = 'rentcar_db';
 const CURRENT_USER_KEY = 'rentcar_current_user';
 const SIDEBAR_COLLAPSED_KEY = 'rentcar_sidebar_collapsed';
 const THEME_KEY = 'rentcar_theme';
+const RESET_TOKENS_KEY = 'rentcar_password_reset_tokens';
 const ITBIS_RATE = 0.18;
 const API_BASE_URL = localStorage.getItem('rentcar_api_url') || 'http://localhost:3000';
 
@@ -144,6 +145,68 @@ function getDB() {
 
 function saveDB(db) {
   localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function getResetTokens() {
+  const rawTokens = localStorage.getItem(RESET_TOKENS_KEY);
+  if (!rawTokens) return [];
+
+  try {
+    const parsed = JSON.parse(rawTokens);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveResetTokens(tokens) {
+  localStorage.setItem(RESET_TOKENS_KEY, JSON.stringify(tokens));
+}
+
+function createLocalResetToken(db, email) {
+  const user = db.users.find((item) => item.email === email);
+  if (!user) return null;
+
+  const resetTokens = getResetTokens().filter((item) => item.email !== email);
+  const token = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+  const expiresAt = Date.now() + 1000 * 60 * 30;
+
+  resetTokens.push({ email, token, expiresAt });
+  saveResetTokens(resetTokens);
+
+  db.outbox.push({
+    id: Date.now(),
+    to: email,
+    subject: 'Restablecer contraseña',
+    message: `Usa este enlace para restablecer tu contraseña: ${window.location.origin}/reset-password.html?token=${token}`,
+    createdAt: new Date().toISOString()
+  });
+  saveDB(db);
+  return token;
+}
+
+function consumeLocalResetToken(token, newPassword) {
+  const resetTokens = getResetTokens();
+  const foundToken = resetTokens.find((item) => item.token === token);
+  if (!foundToken) {
+    throw new Error('Enlace inválido o expirado.');
+  }
+
+  if (Date.now() > foundToken.expiresAt) {
+    saveResetTokens(resetTokens.filter((item) => item.token !== token));
+    throw new Error('El enlace expiró. Solicita uno nuevo.');
+  }
+
+  const db = getDB();
+  const user = db.users.find((item) => item.email === foundToken.email);
+  if (!user) {
+    saveResetTokens(resetTokens.filter((item) => item.token !== token));
+    throw new Error('No encontramos una cuenta asociada a este enlace.');
+  }
+
+  user.password = newPassword;
+  saveDB(db);
+  saveResetTokens(resetTokens.filter((item) => item.token !== token));
 }
 
 function getCurrentUser() {
@@ -677,18 +740,15 @@ function handleForgotPassword() {
   const form = document.getElementById('forgotForm');
   if (!form) return;
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
     if (!email) return;
 
-    try {
-      await postToApi('/api/auth/forgot-password', { email });
-      document.getElementById('recoveryBox').classList.add('hidden');
-      document.getElementById('successBox').classList.remove('hidden');
-    } catch (error) {
-      alert(error.message || 'No pudimos procesar la solicitud.');
-    }
+    const db = getDB();
+    createLocalResetToken(db, email);
+    document.getElementById('recoveryBox').classList.add('hidden');
+    document.getElementById('successBox').classList.remove('hidden');
   });
 }
 
@@ -703,7 +763,7 @@ function handleResetPassword() {
     return;
   }
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     const password = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
@@ -719,7 +779,7 @@ function handleResetPassword() {
     }
 
     try {
-      await postToApi('/api/auth/reset-password', { token, newPassword: password });
+      consumeLocalResetToken(token, password);
       document.getElementById('resetBox').classList.add('hidden');
       document.getElementById('resetSuccessBox').classList.remove('hidden');
     } catch (error) {
