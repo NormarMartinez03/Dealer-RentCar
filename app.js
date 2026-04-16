@@ -3,6 +3,7 @@ const CURRENT_USER_KEY = 'rentcar_current_user';
 const SIDEBAR_COLLAPSED_KEY = 'rentcar_sidebar_collapsed';
 const THEME_KEY = 'rentcar_theme';
 const ITBIS_RATE = 0.18;
+const API_BASE_URL = localStorage.getItem('rentcar_api_url') || 'http://localhost:3000';
 
 const seedData = {
   users: [
@@ -293,6 +294,27 @@ function queueBookingEmail(db, payload) {
   });
 }
 
+async function postToApi(endpoint, payload) {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || 'No fue posible completar la solicitud.');
+  }
+
+  return data;
+}
+
 function updateNavUser() {
   const user = getCurrentUser();
   const userName = document.getElementById('navUserName');
@@ -531,12 +553,22 @@ function renderAdminPanel() {
     : '<tr><td colspan="6" class="empty-state">No hay reservas con ese criterio.</td></tr>';
 
   const filteredInquiries = db.inquiries.filter((inq) => {
-    const haystack = `${inq.name} ${inq.email} ${inq.message}`.toLowerCase();
+    const haystack = `${inq.name} ${inq.email} ${inq.message} ${inq.mailTo || ''} ${inq.mailStatus || ''}`.toLowerCase();
     return !inquirySearch || haystack.includes(inquirySearch);
   });
   inquiriesTable.innerHTML = filteredInquiries.length
-    ? filteredInquiries.map((inq) => `<tr><td>${inq.name}</td><td>${inq.email}</td><td>${inq.message}</td></tr>`).join('')
-    : '<tr><td colspan="3" class="empty-state">No hay consultas con ese criterio.</td></tr>';
+    ? filteredInquiries
+        .map(
+          (inq) => `<tr>
+            <td>${inq.name}</td>
+            <td>${inq.email}</td>
+            <td>${inq.message}</td>
+            <td>${inq.mailTo || '-'}</td>
+            <td><span class="status-chip">${inq.mailStatus || 'pendiente'}</span></td>
+          </tr>`
+        )
+        .join('')
+    : '<tr><td colspan="5" class="empty-state">No hay consultas con ese criterio.</td></tr>';
 }
 
 function initAdminFilters() {
@@ -645,18 +677,54 @@ function handleForgotPassword() {
   const form = document.getElementById('forgotForm');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
-    const db = getDB();
+    if (!email) return;
 
-    if (!db.users.some((u) => u.email === email)) {
-      alert('No encontramos una cuenta con este correo.');
+    try {
+      await postToApi('/api/auth/forgot-password', { email });
+      document.getElementById('recoveryBox').classList.add('hidden');
+      document.getElementById('successBox').classList.remove('hidden');
+    } catch (error) {
+      alert(error.message || 'No pudimos procesar la solicitud.');
+    }
+  });
+}
+
+function handleResetPassword() {
+  const form = document.getElementById('resetPasswordForm');
+  if (!form) return;
+
+  const token = new URLSearchParams(window.location.search).get('token');
+  if (!token) {
+    alert('Enlace inválido. Solicita uno nuevo.');
+    window.location.href = 'forgot-password.html';
+    return;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password.length < 8) {
+      alert('La contraseña debe tener al menos 8 caracteres.');
       return;
     }
 
-    document.getElementById('recoveryBox').classList.add('hidden');
-    document.getElementById('successBox').classList.remove('hidden');
+    if (password !== confirmPassword) {
+      alert('Las contraseñas no coinciden.');
+      return;
+    }
+
+    try {
+      await postToApi('/api/auth/reset-password', { token, newPassword: password });
+      document.getElementById('resetBox').classList.add('hidden');
+      document.getElementById('resetSuccessBox').classList.remove('hidden');
+    } catch (error) {
+      alert(error.message || 'No pudimos actualizar la contraseña.');
+    }
   });
 }
 
@@ -861,20 +929,58 @@ function handleCheckout() {
 function handleContact() {
   const form = document.getElementById('contactForm');
   if (!form) return;
+  const successBox = document.getElementById('contactSuccess');
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const name = document.getElementById('contactName').value.trim();
+    const email = document.getElementById('contactEmail').value.trim();
+    const message = document.getElementById('contactMessage').value.trim();
+
+    if (!name || !email || !message) {
+      alert('Completa todos los campos.');
+      return;
+    }
+
+    let response;
+    let usedFallback = false;
+    try {
+      response = await postToApi('/api/inquiries', { name, email, message });
+    } catch (error) {
+      console.error('Error enviando consulta al backend:', error);
+      usedFallback = true;
+      response = {
+        mailTo: 'pendiente de configurar',
+        mailStatus: 'pendiente-local'
+      };
+    }
+
     const db = getDB();
     db.inquiries.push({
       id: Date.now(),
-      name: document.getElementById('contactName').value.trim(),
-      email: document.getElementById('contactEmail').value.trim(),
-      message: document.getElementById('contactMessage').value.trim(),
+      name,
+      email,
+      message,
+      mailTo: response.mailTo || '-',
+      mailStatus: response.mailStatus || 'pendiente',
+      createdAt: new Date().toISOString()
+    });
+    db.outbox.push({
+      id: Date.now() + 1,
+      to: response.mailTo || '-',
+      subject: `Consulta de ${name}`,
+      message,
+      status: response.mailStatus || 'pendiente',
       createdAt: new Date().toISOString()
     });
     saveDB(db);
     form.reset();
-    document.getElementById('contactSuccess').classList.remove('hidden');
+    if (successBox) {
+      successBox.textContent = usedFallback
+        ? '⚠️ Consulta guardada localmente. No se pudo conectar con el backend para enviar correo.'
+        : `✅ Consulta enviada. Destino: ${response.mailTo || '-'} (${response.mailStatus || 'pendiente'}).`;
+      successBox.classList.remove('hidden');
+    }
   });
 }
 
@@ -902,6 +1008,7 @@ function initPage() {
   handleLogin();
   handleRegister();
   handleForgotPassword();
+  handleResetPassword();
   renderCatalog();
   setupFilters();
   renderFeaturedStats();

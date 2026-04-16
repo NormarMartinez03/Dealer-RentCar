@@ -4,6 +4,8 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const path = require('path');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
@@ -11,6 +13,9 @@ const sqlite3 = require('sqlite3');
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'rentcar-secret-change-me';
 const DB_PATH = path.join(__dirname, 'rentcar.sqlite');
+const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:8000';
+const PASSWORD_RESET_EXPIRATION_MINUTES = 30;
+const SUPPORT_INBOX_EMAIL = process.env.SUPPORT_INBOX_EMAIL || 'admin@rentcar.com';
 
 const app = express();
 app.use(helmet());
@@ -36,6 +41,7 @@ app.use('/api/auth', authLimiter);
 app.use('/api', apiLimiter);
 
 let db;
+let mailTransporter = null;
 
 function sanitizeUser(user) {
   return { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role };
@@ -63,6 +69,82 @@ function signToken(user) {
   return jwt.sign({ sub: user.id, role: user.role, name: user.name, email: user.email }, JWT_SECRET, {
     expiresIn: '8h'
   });
+}
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function getMailTransporter() {
+  if (mailTransporter) return mailTransporter;
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+    return null;
+  }
+  mailTransporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT),
+    secure: Number(SMTP_PORT) === 465,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS
+    }
+  });
+  return mailTransporter;
+}
+
+async function sendPasswordResetEmail({ to, name, resetLink }) {
+  const transporter = getMailTransporter();
+  const message = [
+    `Hola ${name || 'usuario'},`,
+    '',
+    'Recibimos una solicitud para restablecer tu contraseña en RentCar.',
+    `Abre este enlace para cambiarla: ${resetLink}`,
+    '',
+    `Este enlace caduca en ${PASSWORD_RESET_EXPIRATION_MINUTES} minutos.`,
+    'Si no solicitaste este cambio, ignora este correo.'
+  ].join('\n');
+
+  if (!transporter) {
+    console.log('[PASSWORD_RESET_SIMULATION]', { to, resetLink });
+    return;
+  }
+
+  const fromEmail = process.env.MAIL_FROM || process.env.SMTP_USER;
+  await transporter.sendMail({
+    from: fromEmail,
+    to,
+    subject: 'Restablece tu contraseña de RentCar',
+    text: message
+  });
+}
+
+async function sendInquiryEmail({ name, email, message }) {
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    console.log('[INQUIRY_EMAIL_SIMULATION]', { to: SUPPORT_INBOX_EMAIL, from: email, name, message });
+    return { status: 'simulado', error: null };
+  }
+
+  try {
+    const fromEmail = process.env.MAIL_FROM || process.env.SMTP_USER;
+    await transporter.sendMail({
+      from: fromEmail,
+      replyTo: email,
+      to: SUPPORT_INBOX_EMAIL,
+      subject: `Nueva consulta de ${name}`,
+      text: [`Nombre: ${name}`, `Correo: ${email}`, '', 'Mensaje:', message].join('\n')
+    });
+    return { status: 'enviado', error: null };
+  } catch (error) {
+    return { status: 'fallido', error: error.message || 'No se pudo enviar el correo.' };
+  }
+}
+
+async function ensureColumn(tableName, columnName, definition) {
+  const columns = await db.all(`PRAGMA table_info(${tableName})`);
+  if (columns.some((column) => column.name === columnName)) return;
+  await db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${definition}`);
 }
 
 function authRequired(req, res, next) {
@@ -143,9 +225,25 @@ async function initDatabase() {
       name TEXT NOT NULL,
       email TEXT NOT NULL,
       message TEXT NOT NULL,
+      mail_to TEXT,
+      mail_status TEXT,
+      mail_error TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      used_at TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
+  await ensureColumn('inquiries', 'mail_to', 'mail_to TEXT');
+  await ensureColumn('inquiries', 'mail_status', 'mail_status TEXT');
+  await ensureColumn('inquiries', 'mail_error', 'mail_error TEXT');
 
   const adminExists = await db.get('SELECT id FROM users WHERE email = ?', ['admin@rentcar.com']);
   if (!adminExists) {
@@ -209,6 +307,63 @@ app.post('/api/auth/login', async (req, res) => {
   const cleanUser = sanitizeUser(user);
   const token = signToken(cleanUser);
   res.json({ user: cleanUser, token });
+});
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: 'Correo requerido.' });
+
+  const user = await db.get('SELECT id, name, email FROM users WHERE email = ?', [email]);
+  if (user) {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRATION_MINUTES * 60 * 1000).toISOString();
+
+    await db.run('DELETE FROM password_resets WHERE user_id = ?', [user.id]);
+    await db.run('DELETE FROM password_resets WHERE expires_at <= ?', [new Date().toISOString()]);
+    await db.run(
+      'INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
+      [user.id, tokenHash, expiresAt]
+    );
+
+    const resetLink = `${FRONTEND_BASE_URL.replace(/\/$/, '')}/reset-password.html?token=${rawToken}`;
+    await sendPasswordResetEmail({ to: user.email, name: user.name, resetLink });
+  }
+
+  return res.json({
+    message: 'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.'
+  });
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const token = String(req.body?.token || '').trim();
+  const newPassword = String(req.body?.newPassword || '');
+  if (!token || !newPassword || newPassword.length < 8) {
+    return res.status(400).json({ error: 'Token y nueva contraseña (mínimo 8 caracteres) son requeridos.' });
+  }
+
+  const tokenHash = hashToken(token);
+  const passwordReset = await db.get(
+    `SELECT pr.id, pr.user_id, pr.expires_at
+     FROM password_resets pr
+     WHERE pr.token_hash = ? AND pr.used_at IS NULL`,
+    [tokenHash]
+  );
+
+  if (!passwordReset) {
+    return res.status(400).json({ error: 'El enlace no es válido o ya fue usado.' });
+  }
+
+  if (new Date(passwordReset.expires_at).getTime() <= Date.now()) {
+    await db.run('DELETE FROM password_resets WHERE id = ?', [passwordReset.id]);
+    return res.status(400).json({ error: 'El enlace expiró. Solicita uno nuevo.' });
+  }
+
+  const newHash = await bcrypt.hash(newPassword, 10);
+  await db.run('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, passwordReset.user_id]);
+  await db.run('UPDATE password_resets SET used_at = CURRENT_TIMESTAMP WHERE id = ?', [passwordReset.id]);
+
+  return res.json({ message: 'Contraseña actualizada correctamente.' });
 });
 
 app.get('/api/cars', async (req, res) => {
@@ -276,8 +431,21 @@ app.post('/api/inquiries', async (req, res) => {
   const { name, email, message } = req.body;
   if (!name || !email || !message) return res.status(400).json({ error: 'Todos los campos son requeridos.' });
 
-  await db.run('INSERT INTO inquiries (name, email, message) VALUES (?, ?, ?)', [name.trim(), email.trim(), message.trim()]);
-  res.status(201).json({ message: 'Consulta enviada.' });
+  const cleaned = {
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    message: message.trim()
+  };
+  const delivery = await sendInquiryEmail(cleaned);
+  await db.run(
+    'INSERT INTO inquiries (name, email, message, mail_to, mail_status, mail_error) VALUES (?, ?, ?, ?, ?, ?)',
+    [cleaned.name, cleaned.email, cleaned.message, SUPPORT_INBOX_EMAIL, delivery.status, delivery.error]
+  );
+  res.status(201).json({
+    message: 'Consulta enviada.',
+    mailTo: SUPPORT_INBOX_EMAIL,
+    mailStatus: delivery.status
+  });
 });
 
 app.get('/api/admin/stats', authRequired, roleRequired('admin'), async (_req, res) => {
@@ -307,7 +475,9 @@ app.get('/api/admin/bookings', authRequired, roleRequired('admin'), async (_req,
 });
 
 app.get('/api/admin/inquiries', authRequired, roleRequired('admin'), async (_req, res) => {
-  const inquiries = await db.all('SELECT id, name, email, message, created_at FROM inquiries ORDER BY id DESC');
+  const inquiries = await db.all(
+    'SELECT id, name, email, message, mail_to, mail_status, mail_error, created_at FROM inquiries ORDER BY id DESC'
+  );
   res.json(inquiries);
 });
 
