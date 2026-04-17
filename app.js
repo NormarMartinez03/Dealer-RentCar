@@ -2,6 +2,7 @@ const DB_KEY = 'rentcar_db';
 const CURRENT_USER_KEY = 'rentcar_current_user';
 const SIDEBAR_COLLAPSED_KEY = 'rentcar_sidebar_collapsed';
 const THEME_KEY = 'rentcar_theme';
+const RESET_TOKENS_KEY = 'rentcar_password_reset_tokens';
 const ITBIS_RATE = 0.18;
 const API_BASE_URL = localStorage.getItem('rentcar_api_url') || 'http://localhost:3000';
 
@@ -144,6 +145,68 @@ function getDB() {
 
 function saveDB(db) {
   localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function getResetTokens() {
+  const rawTokens = localStorage.getItem(RESET_TOKENS_KEY);
+  if (!rawTokens) return [];
+
+  try {
+    const parsed = JSON.parse(rawTokens);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveResetTokens(tokens) {
+  localStorage.setItem(RESET_TOKENS_KEY, JSON.stringify(tokens));
+}
+
+function createLocalResetToken(db, email) {
+  const user = db.users.find((item) => item.email === email);
+  if (!user) return null;
+
+  const resetTokens = getResetTokens().filter((item) => item.email !== email);
+  const token = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+  const expiresAt = Date.now() + 1000 * 60 * 30;
+
+  resetTokens.push({ email, token, expiresAt });
+  saveResetTokens(resetTokens);
+
+  db.outbox.push({
+    id: Date.now(),
+    to: email,
+    subject: 'Restablecer contraseña',
+    message: `Usa este enlace para restablecer tu contraseña: ${window.location.origin}/reset-password.html?token=${token}`,
+    createdAt: new Date().toISOString()
+  });
+  saveDB(db);
+  return token;
+}
+
+function consumeLocalResetToken(token, newPassword) {
+  const resetTokens = getResetTokens();
+  const foundToken = resetTokens.find((item) => item.token === token);
+  if (!foundToken) {
+    throw new Error('Enlace inválido o expirado.');
+  }
+
+  if (Date.now() > foundToken.expiresAt) {
+    saveResetTokens(resetTokens.filter((item) => item.token !== token));
+    throw new Error('El enlace expiró. Solicita uno nuevo.');
+  }
+
+  const db = getDB();
+  const user = db.users.find((item) => item.email === foundToken.email);
+  if (!user) {
+    saveResetTokens(resetTokens.filter((item) => item.token !== token));
+    throw new Error('No encontramos una cuenta asociada a este enlace.');
+  }
+
+  user.password = newPassword;
+  saveDB(db);
+  saveResetTokens(resetTokens.filter((item) => item.token !== token));
 }
 
 function getCurrentUser() {
@@ -501,12 +564,14 @@ function renderAdminPanel() {
   const stats = document.getElementById('adminStats');
   const usersTable = document.getElementById('usersTable');
   const bookingsTable = document.getElementById('bookingsTable');
+  const carsTable = document.getElementById('carsTable');
   const inquiriesTable = document.getElementById('inquiriesTable');
-  if (!stats || !usersTable || !bookingsTable || !inquiriesTable) return;
+  if (!stats || !usersTable || !bookingsTable || !carsTable || !inquiriesTable) return;
 
   const db = getDB();
   const userSearch = document.getElementById('adminUserSearch')?.value.trim().toLowerCase() || '';
   const bookingSearch = document.getElementById('adminBookingSearch')?.value.trim().toLowerCase() || '';
+  const carSearch = document.getElementById('adminCarSearch')?.value.trim().toLowerCase() || '';
   const inquirySearch = document.getElementById('adminInquirySearch')?.value.trim().toLowerCase() || '';
 
   stats.innerHTML = `
@@ -552,6 +617,24 @@ function renderAdminPanel() {
         .join('')
     : '<tr><td colspan="6" class="empty-state">No hay reservas con ese criterio.</td></tr>';
 
+  const filteredCars = db.cars.filter((car) => {
+    const haystack = `${car.name} ${car.brand} ${car.model} ${car.location}`.toLowerCase();
+    return !carSearch || haystack.includes(carSearch);
+  });
+  carsTable.innerHTML = filteredCars.length
+    ? filteredCars
+        .map(
+          (car) => `<tr>
+            <td>#${car.id}</td>
+            <td>${car.name}</td>
+            <td>${car.category}</td>
+            <td>${car.location}</td>
+            <td>${formatCurrency(car.pricePerDay)}</td>
+          </tr>`
+        )
+        .join('')
+    : '<tr><td colspan="5" class="empty-state">No hay vehículos con ese criterio.</td></tr>';
+
   const filteredInquiries = db.inquiries.filter((inq) => {
     const haystack = `${inq.name} ${inq.email} ${inq.message} ${inq.mailTo || ''} ${inq.mailStatus || ''}`.toLowerCase();
     return !inquirySearch || haystack.includes(inquirySearch);
@@ -572,7 +655,7 @@ function renderAdminPanel() {
 }
 
 function initAdminFilters() {
-  ['adminUserSearch', 'adminBookingSearch', 'adminInquirySearch'].forEach((id) => {
+  ['adminUserSearch', 'adminBookingSearch', 'adminCarSearch', 'adminInquirySearch'].forEach((id) => {
     const element = document.getElementById(id);
     if (element) element.addEventListener('input', renderAdminPanel);
   });
@@ -602,6 +685,57 @@ function handleAdminCreateUser() {
     saveDB(db);
     form.reset();
     messageBox.textContent = `Usuario creado con rol: ${role}.`;
+    messageBox.classList.remove('hidden');
+    renderAdminPanel();
+  });
+}
+
+function handleAdminCreateCar() {
+  const form = document.getElementById('adminCreateCarForm');
+  if (!form) return;
+  const messageBox = document.getElementById('adminCreateCarMessage');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const db = getDB();
+
+    const brand = document.getElementById('adminCarBrand').value.trim();
+    const model = document.getElementById('adminCarModel').value.trim();
+    const name = document.getElementById('adminCarName').value.trim() || `${brand} ${model}`;
+    const year = Number(document.getElementById('adminCarYear').value);
+    const category = document.getElementById('adminCarCategory').value;
+    const location = document.getElementById('adminCarLocation').value.trim();
+    const pricePerDay = Number(document.getElementById('adminCarPricePerDay').value);
+    const image = document.getElementById('adminCarImage').value.trim();
+
+    if (!brand || !model || !location || !image || !Number.isFinite(year) || !Number.isFinite(pricePerDay)) {
+      messageBox.textContent = 'Completa todos los campos del vehículo.';
+      messageBox.classList.remove('hidden');
+      return;
+    }
+
+    db.cars.push({
+      id: Date.now(),
+      name,
+      brand,
+      model,
+      year,
+      category,
+      transmission: 'Automática',
+      fuel: 'Gasolina',
+      seats: 5,
+      luggage: 2,
+      location,
+      pricePerDay,
+      rating: 4.5,
+      image,
+      features: ['Aire acondicionado', 'Bluetooth', 'Seguro básico'],
+      description: `Vehículo ${category} disponible en ${location}.`
+    });
+
+    saveDB(db);
+    form.reset();
+    messageBox.textContent = 'Vehículo agregado correctamente.';
     messageBox.classList.remove('hidden');
     renderAdminPanel();
   });
@@ -677,18 +811,15 @@ function handleForgotPassword() {
   const form = document.getElementById('forgotForm');
   if (!form) return;
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('recoveryEmail').value.trim().toLowerCase();
     if (!email) return;
 
-    try {
-      await postToApi('/api/auth/forgot-password', { email });
-      document.getElementById('recoveryBox').classList.add('hidden');
-      document.getElementById('successBox').classList.remove('hidden');
-    } catch (error) {
-      alert(error.message || 'No pudimos procesar la solicitud.');
-    }
+    const db = getDB();
+    createLocalResetToken(db, email);
+    document.getElementById('recoveryBox').classList.add('hidden');
+    document.getElementById('successBox').classList.remove('hidden');
   });
 }
 
@@ -703,7 +834,7 @@ function handleResetPassword() {
     return;
   }
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     const password = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
@@ -719,7 +850,7 @@ function handleResetPassword() {
     }
 
     try {
-      await postToApi('/api/auth/reset-password', { token, newPassword: password });
+      consumeLocalResetToken(token, password);
       document.getElementById('resetBox').classList.add('hidden');
       document.getElementById('resetSuccessBox').classList.remove('hidden');
     } catch (error) {
@@ -1011,6 +1142,7 @@ function initPage() {
   initAdminFilters();
   renderAdminPanel();
   handleAdminCreateUser();
+  handleAdminCreateCar();
   initAgentFilters();
   renderAgentPanel();
   renderSidebar();

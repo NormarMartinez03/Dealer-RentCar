@@ -36,6 +36,29 @@
         </form>
       </section>
 
+      <section class="glass-box wide-box">
+        <h3>Agregar vehículo</h3>
+        <form id="adminCreateCarForm" class="stack-md">
+          <label class="input-group no-icon"><input type="text" id="adminCarName" placeholder="Nombre visible (ej. Toyota Corolla)" required></label>
+          <label class="input-group no-icon"><input type="text" id="adminCarBrand" placeholder="Marca" required></label>
+          <label class="input-group no-icon"><input type="text" id="adminCarModel" placeholder="Modelo" required></label>
+          <label class="input-group no-icon"><input type="number" id="adminCarYear" placeholder="Año" min="2000" max="2100" required></label>
+          <label class="input-group no-icon">
+            <select id="adminCarCategory" required>
+              <option value="economico">Económico</option>
+              <option value="suv">SUV</option>
+              <option value="deportivo">Deportivo</option>
+              <option value="lujo">Lujo</option>
+            </select>
+          </label>
+          <label class="input-group no-icon"><input type="text" id="adminCarLocation" placeholder="Ubicación" required></label>
+          <label class="input-group no-icon"><input type="number" id="adminCarPricePerDay" placeholder="Precio por día (USD)" min="1" required></label>
+          <label class="input-group no-icon"><input type="url" id="adminCarImage" placeholder="URL de imagen" required></label>
+          <button class="btn-primary" type="submit">Agregar vehículo</button>
+          <p class="muted hidden" id="adminCreateCarMessage"></p>
+        </form>
+      </section>
+
       <section class="glass-box table-wrap wide-box">
         <h3>Usuarios</h3>
         <div class="table-toolbar">
@@ -59,6 +82,19 @@
         <table>
           <thead><tr><th>ID</th><th>Cliente</th><th>Vehículo</th><th>Fechas</th><th>Tarjeta</th><th>Total</th></tr></thead>
           <tbody id="bookingsTable"></tbody>
+        </table>
+      </section>
+
+      <section class="glass-box table-wrap wide-box">
+        <h3>Vehículos</h3>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="adminCarSearch" placeholder="Buscar por nombre, marca, modelo o ubicación">
+          </label>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Vehículo</th><th>Categoría</th><th>Ubicación</th><th>Precio/día</th></tr></thead>
+          <tbody id="carsTable"></tbody>
         </table>
       </section>
 
