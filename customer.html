@@ -1,17 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Panel Cliente</title><link rel="stylesheet" href="style.css"></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentCar Express | Portal cliente</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 <body data-page="customer">
   <div class="app-layout">
     <aside id="appSidebar" class="sidebar-panel"></aside>
     <main class="app-main">
       <header class="page-header">
-        <h1>Portal del Cliente</h1>
-        <p>Gestiona tus reservas desde el catálogo.</p>
-        <a class="btn-primary quick-action" href="catalog.html">Ir al catálogo</a>
+        <h1>Portal del cliente</h1>
+        <p>Administra tu perfil y consulta el historial de reservas.</p>
       </header>
+
+      <section class="stats-box" id="customerStats"></section>
+
+      <section class="glass-box wide-box">
+        <h3>Mi perfil</h3>
+        <form id="customerProfileForm" class="stack-md">
+          <label class="input-group no-icon">
+            <input type="text" id="customerName" placeholder="Nombre completo" required>
+          </label>
+          <label class="input-group no-icon">
+            <input type="email" id="customerEmail" placeholder="Correo" readonly>
+          </label>
+          <label class="input-group no-icon">
+            <input type="text" id="customerPhone" placeholder="Telefono">
+          </label>
+          <button class="btn-primary" type="submit">Guardar cambios</button>
+          <p class="muted hidden" id="customerProfileMessage"></p>
+        </form>
+      </section>
+
+      <section class="glass-box wide-box">
+        <h3>Cambiar contrasena</h3>
+        <p class="muted">Actualiza tu acceso y recibe una notificacion de seguridad en tu correo.</p>
+        <form id="customerPasswordForm" class="stack-md">
+          <label class="input-group no-icon">
+            <input type="password" id="customerCurrentPassword" placeholder="Contrasena actual" minlength="8" required>
+          </label>
+          <label class="input-group no-icon">
+            <input type="password" id="customerNewPassword" placeholder="Nueva contrasena" minlength="8" required>
+          </label>
+          <label class="input-group no-icon">
+            <input type="password" id="customerConfirmPassword" placeholder="Confirmar nueva contrasena" minlength="8" required>
+          </label>
+          <button class="btn-primary" type="submit">Actualizar contrasena</button>
+          <p class="muted hidden" id="customerPasswordMessage"></p>
+        </form>
+      </section>
+
+      <section class="glass-box table-wrap wide-box">
+        <h3>Mis reservas</h3>
+        <p class="muted">Cada reserva genera una factura PDF descargable desde esta misma tabla.</p>
+        <div class="table-toolbar">
+          <label class="input-group no-icon compact-filter">
+            <input type="search" id="customerBookingSearch" placeholder="Buscar por vehiculo o estado">
+          </label>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Vehiculo</th>
+              <th>Rango</th>
+              <th>Dias</th>
+              <th>NCF</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th>Factura</th>
+            </tr>
+          </thead>
+          <tbody id="customerBookingsTable"></tbody>
+        </table>
+      </section>
     </main>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>

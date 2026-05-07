@@ -11,32 +11,35 @@
     <aside id="appSidebar" class="sidebar-panel"></aside>
     <main class="app-main contact-layout">
       <section class="contact-panel">
-        <p class="pill">Soporte Premium</p>
+        <p class="pill">Soporte</p>
         <h1>Estamos para ayudarte</h1>
-        <p class="muted">Nuestro equipo te responde rápido para temas de reservas, cambios de vehículo, facturación y asistencia en ruta.</p>
+        <p class="muted">Cuestiones de reservas, cambios, pagos o incidencias en ruta. Respondemos rapido.</p>
         <ul class="contact-benefits">
-          <li>✅ Atención 24/7 en toda Republica Dominicana.</li>
-          <li>✅ Respuesta en menos de 2 horas hábiles.</li>
-          <li>✅ Soporte para cambios y cancelaciones.</li>
+          <li>Atencion para clientes, agentes y administradores.</li>
+          <li>Seguimiento directo a solicitudes activas.</li>
+          <li>Confirmacion por correo del estatus de tu consulta.</li>
         </ul>
       </section>
 
       <section class="glass-box contact-card">
-        <h2>Envíanos un mensaje</h2>
-        <p class="muted">Completa el formulario y te contactaremos pronto.</p>
+        <h2>Enviar solicitud</h2>
+        <p class="muted">Completa el formulario y nuestro equipo te contactara.</p>
         <form id="contactForm" class="stack-md">
           <label class="input-group no-icon">
             <input type="text" id="contactName" placeholder="Nombre completo" required>
           </label>
           <label class="input-group no-icon">
-            <input type="email" id="contactEmail" placeholder="Correo electrónico" required>
+            <input type="email" id="contactEmail" placeholder="Correo electronico" required>
           </label>
           <label class="input-group no-icon">
-            <textarea id="contactMessage" placeholder="¿Cómo podemos ayudarte?" required></textarea>
+            <input type="text" id="contactSubject" placeholder="Asunto">
+          </label>
+          <label class="input-group no-icon">
+            <textarea id="contactMessage" placeholder="Describe tu solicitud" required></textarea>
           </label>
           <button class="btn-primary" type="submit">Enviar mensaje</button>
         </form>
-        <p id="contactSuccess" class="hidden success-msg">✅ ¡Mensaje enviado! Te responderemos pronto.</p>
+        <p id="contactSuccess" class="hidden success-msg"></p>
       </section>
     </main>
   </div>

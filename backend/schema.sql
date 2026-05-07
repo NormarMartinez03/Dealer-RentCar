@@ -1,16 +1,17 @@
 PRAGMA foreign_keys = ON;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   phone TEXT,
-  role TEXT NOT NULL CHECK(role IN ('admin','customer','agent')) DEFAULT 'customer',
+  role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('admin', 'customer', 'agent')),
+  active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE cars (
+CREATE TABLE IF NOT EXISTS cars (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   brand TEXT NOT NULL,
@@ -27,10 +28,11 @@ CREATE TABLE cars (
   image TEXT,
   description TEXT,
   features TEXT,
-  active INTEGER NOT NULL DEFAULT 1
+  active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE bookings (
+CREATE TABLE IF NOT EXISTS bookings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   car_id INTEGER NOT NULL,
@@ -41,16 +43,35 @@ CREATE TABLE bookings (
   service_fee REAL NOT NULL,
   taxes REAL NOT NULL,
   total REAL NOT NULL,
-  status TEXT NOT NULL DEFAULT 'confirmada',
+  status TEXT NOT NULL DEFAULT 'confirmada' CHECK (status IN ('confirmada', 'en_curso', 'completada', 'cancelada')),
+  billing_email TEXT,
+  payment_last4 TEXT,
+  ncf TEXT,
+  agent_note TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY(user_id) REFERENCES users(id),
-  FOREIGN KEY(car_id) REFERENCES cars(id)
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE RESTRICT,
+  FOREIGN KEY(car_id) REFERENCES cars(id) ON DELETE RESTRICT
 );
 
-CREATE TABLE inquiries (
+CREATE TABLE IF NOT EXISTS inquiries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
+  subject TEXT,
   message TEXT NOT NULL,
+  mail_to TEXT,
+  mail_status TEXT,
+  mail_error TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );

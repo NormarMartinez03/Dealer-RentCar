@@ -1,0 +1,11 @@
+Backend listo en http://localhost:3000
+[PASSWORD_RESET_SENT] {
+  to: 'normarcampos03@gmail.com',
+  subject: 'Restablece tu contrasena de RentCar'
+}
+[PASSWORD_CHANGED_SENT] {
+  to: 'normarcampos03@gmail.com',
+  subject: 'Tu contrasena fue actualizada'
+}
+[INQUIRY_SUPPORT_SENT] { to: 'normarcampos03@gmail.com', subject: 'Nueva consulta: reserva' }
+[INQUIRY_CONFIRMATION_SENT] { to: 'normarcampos03@gmail.com', subject: 'Recibimos tu consulta' }

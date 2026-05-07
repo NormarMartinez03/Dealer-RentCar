@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Empleados | RentCar Express</title>
+  <title>RentCar Express | Panel de agente</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="agent">
@@ -11,24 +11,25 @@
     <aside id="appSidebar" class="sidebar-panel"></aside>
     <main class="app-main">
       <header class="page-header">
-        <h1>Seguimiento de alquileres</h1>
-        <p>Control diario de vehículos programados, en curso y finalizados.</p>
+        <h1>Panel operativo de agente</h1>
+        <p>Da seguimiento a reservas, estados de entrega y cierre de alquileres.</p>
       </header>
 
       <section class="stats-box" id="agentStats"></section>
 
       <section class="glass-box table-wrap wide-box">
-        <h3>Alquileres activos y programados</h3>
+        <h3>Reservas operativas</h3>
         <div class="table-toolbar toolbar-grid">
           <label class="input-group no-icon compact-filter">
-            <input type="search" id="agentSearch" placeholder="Buscar cliente o vehículo">
+            <input type="search" id="agentSearch" placeholder="Buscar cliente o vehiculo">
           </label>
           <label class="input-group no-icon">
             <select id="agentStatusFilter">
               <option value="todos">Todos los estados</option>
-              <option value="en curso">En curso</option>
-              <option value="programado">Programado</option>
-              <option value="finalizado">Finalizado</option>
+              <option value="confirmada">Confirmada</option>
+              <option value="en_curso">En curso</option>
+              <option value="completada">Completada</option>
+              <option value="cancelada">Cancelada</option>
             </select>
           </label>
         </div>
@@ -37,10 +38,12 @@
             <tr>
               <th>Reserva</th>
               <th>Cliente</th>
-              <th>Vehículo</th>
+              <th>Vehiculo</th>
               <th>Inicio</th>
               <th>Fin</th>
+              <th>Total</th>
               <th>Estado</th>
+              <th>Accion</th>
             </tr>
           </thead>
           <tbody id="agentBookingsTable"></tbody>

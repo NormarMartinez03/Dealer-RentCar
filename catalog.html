@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RentCar Express | Catálogo</title>
+  <title>RentCar Express | Catalogo</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="catalog">
@@ -11,14 +11,17 @@
     <aside id="appSidebar" class="sidebar-panel"></aside>
     <main class="app-main">
       <header class="page-header">
-        <h1>Catálogo completo de vehículos</h1>
-        <p>Filtra por categoría, ciudad y precio por día.</p>
+        <h1>Catalogo de vehiculos</h1>
+        <p>Filtra por ciudad, tipo, transmision y disponibilidad.</p>
       </header>
 
       <section class="filters">
+        <label class="input-group no-icon compact-filter">
+          <input type="text" id="filterSearch" placeholder="Buscar marca o modelo">
+        </label>
         <select id="filterCategory">
-          <option value="todos">Todas las categorías</option>
-          <option value="economico">Económico</option>
+          <option value="todos">Todas las categorias</option>
+          <option value="economico">Economico</option>
           <option value="suv">SUV</option>
           <option value="lujo">Lujo</option>
           <option value="deportivo">Deportivo</option>
@@ -30,18 +33,30 @@
           <option value="Bani">Bani</option>
           <option value="Punta Cana">Punta Cana</option>
         </select>
+        <select id="filterTransmission">
+          <option value="todos">Toda transmision</option>
+          <option value="Automatica">Automatica</option>
+          <option value="Manual">Manual</option>
+        </select>
         <select id="filterPrice">
           <option value="9999">Cualquier precio</option>
-          <option value="50">Hasta $50 / día</option>
-          <option value="90">Hasta $90 / día</option>
-          <option value="150">Hasta $150 / día</option>
-          <option value="300">Hasta $300 / día</option>
+          <option value="60">Hasta $60 / dia</option>
+          <option value="100">Hasta $100 / dia</option>
+          <option value="200">Hasta $200 / dia</option>
+          <option value="400">Hasta $400 / dia</option>
+        </select>
+        <select id="filterSeats">
+          <option value="0">Cualquier capacidad</option>
+          <option value="2">2+ pasajeros</option>
+          <option value="4">4+ pasajeros</option>
+          <option value="5">5+ pasajeros</option>
+          <option value="7">7+ pasajeros</option>
         </select>
         <label class="input-group no-icon compact-filter">
-          <input type="date" id="filterStartDate" title="Fecha inicio disponibilidad">
+          <input type="date" id="filterStartDate" title="Fecha inicio">
         </label>
         <label class="input-group no-icon compact-filter">
-          <input type="date" id="filterEndDate" title="Fecha fin disponibilidad">
+          <input type="date" id="filterEndDate" title="Fecha fin">
         </label>
         <label class="toggle-inline">
           <input type="checkbox" id="filterOnlyAvailable">
@@ -52,6 +67,7 @@
       <section class="car-grid" id="vehicleGrid"></section>
     </main>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>

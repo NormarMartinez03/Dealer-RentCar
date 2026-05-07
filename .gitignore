@@ -1,0 +1,4 @@
+node_modules/
+backend/rentcar.sqlite
+npm-debug.log*
+.env
